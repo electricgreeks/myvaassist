@@ -7,8 +7,5 @@
     "api/key.js": {
       "maxDuration": 10
     }
-  },
-  "rewrites": [
-    { "source": "/", "destination": "/landing.html" }
-  ]
+  }
 }
