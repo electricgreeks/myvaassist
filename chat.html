@@ -707,6 +707,7 @@
       <button class="tab" onclick="switchTab('todo', this)">To-Do</button>
       <button class="tab" onclick="switchTab('flags', this)">Flags</button>
       <button class="tab" onclick="switchTab('forms', this)">Forms</button>
+      <button class="tab" id="prev-findings-tab" onclick="switchTab('previous', this)" style="display:none;">Last Session</button>
     </div>
 
     <div class="panel-content" id="panel-content">
@@ -753,6 +754,7 @@
   const API_KEY = typeof window !== 'undefined' && window.__ENV ? window.__ENV.ANTHROPIC_API_KEY : '';
   let conversationHistory = [];
   let panelItems = { progress: [], todo: [], flags: [], forms: [] };
+  let previousSession = null; // Stores prior session data for Last Session tab
   let activeTab = 'progress';
   let uploadedFiles = [];
   let sessionStarted = false;
@@ -784,7 +786,14 @@ Format (always at the very end of your response, after your conversational text)
 }
 <<<END_PANEL>>>
 
-FORMS GUIDANCE: Only add forms to the "forms" array when you have identified the veteran's specific situation and know which forms apply. Common forms:
+PANEL RULES - CRITICAL:
+- NEVER duplicate todo items. Before adding a todo, check if something similar already exists. Consolidate — 10 specific items beats 20 vague ones.
+- When the veteran answers a question or provides information that resolves a todo item, MOVE it to progress immediately. Do not leave answered items in todo.
+- Todo items must be SPECIFIC and ACTIONABLE — not "gather medical records" but "Obtain audiology report from Dr. Smith showing hearing loss severity"
+- Progress items should capture specific facts learned: "Confirmed: TCE/JP-4 exposure at Key West NAS 1964-1968" not just "Identified exposure"
+- Flags are for things that could help OR hurt the case — strengths and problems both go here
+
+FORMS GUIDANCE: Only add forms to the "forms" array when you have identified the veteran's specific situation and know which forms apply. Order forms by what needs to be filed FIRST. Common forms:
 - 21-4142: Always add if private medical records are missing or needed
 - 21-526EZ: New disability claim (url: https://www.va.gov/find-forms/about-form-21-526ez/)
 - 20-0995: Supplemental claim with new evidence (url: https://www.va.gov/find-forms/about-form-20-0995/)
@@ -805,9 +814,54 @@ CONVERSATION STYLE - CRITICAL RULES:
 - Keep panel items specific and actionable, not generic.
 - Guide them toward the strongest possible claim or appeal strategy.
 
-FORM WALKTHROUGH: If the veteran asks for help filling out a form or wants VSO-style guidance completing paperwork, shift into form walkthrough mode. Go through the form section by section, asking ONE field at a time, collecting their answers, and building a completed pre-fill summary as you go. When done, output the complete filled answers as a formatted summary they can use to complete the real form.
+FORM WALKTHROUGH: If the veteran asks for help filling out a form or wants VSO-style guidance, shift into form walkthrough mode. Ask ONE field at a time. After collecting all answers, output a complete pre-fill summary.
 
-NEXUS LETTERS: If the veteran's case would benefit from a nexus letter (connecting a condition to service), proactively mention it and offer to draft one based on what you know about their case. A nexus letter is a doctor's opinion letter — you can generate a template they bring to their doctor to review, sign, and put on letterhead.
+21-526EZ KEY SECTIONS (walk through in order):
+1. Veteran's full legal name
+2. Social Security Number (last 4 only for privacy — tell them you only need last 4)
+3. VA file number (if they have one)
+4. Date of birth
+5. Branch of service
+6. Service start and end dates
+7. Character of discharge (honorable, general, etc.)
+8. Conditions being claimed (list each one)
+9. For each condition: when did it start? Is it related to an event, injury, or exposure in service?
+10. Are they currently being treated for this condition?
+11. Do they have private medical records the VA doesn't have access to? (triggers 21-4142)
+12. Direct deposit information (tell them they'll fill this on the actual form)
+
+When walkthrough is complete, output:
+===21-526EZ PRE-FILL SUMMARY===
+[formatted answers for every field collected]
+===END===
+
+Tell them to use this summary to fill out the actual form at VA.gov or bring it to a VSO.
+
+NEXUS LETTERS: If the veteran's case would benefit from a nexus letter (connecting a condition to service), proactively mention it and offer to draft one. When they agree, generate a complete professional nexus letter template in this format:
+
+---
+[DATE]
+
+To Whom It May Concern / Department of Veterans Affairs
+
+RE: Nexus Opinion — [VETERAN NAME], VA File #[FILE NUMBER IF KNOWN]
+
+I, [DOCTOR NAME], [credentials], have treated [veteran name] and reviewed their medical history. Based on my clinical evaluation and review of available records, it is my medical opinion that [CONDITION] is at least as likely as not (50% or greater probability) connected to [veteran's] military service.
+
+MEDICAL FINDINGS: [specific findings about the condition]
+
+BASIS FOR OPINION: [veteran served at X location from X to X, was exposed to Y, condition first appeared/was documented Z]
+
+This opinion is based on: [medical literature, treatment records, service records reviewed]
+
+Signature: _______________________
+[Doctor name, credentials, practice]
+[Date]
+---
+
+Tell them: "Print this, bring it to your doctor. Ask them to review it, adjust anything that's not accurate, sign it, and put it on their letterhead. Then submit it with your claim."
+
+A nexus letter is one of the most powerful pieces of evidence you can submit.
 
 You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.
 
@@ -828,18 +882,18 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       sessionStorage.removeItem('resumeSession');
       try {
         const session = JSON.parse(resumeData);
-        // Restore panel state
-        if (session.case_status) {
-          panelItems.progress = (session.case_status.completed||[]).map(t => ({text:t, status:'done'}));
-          panelItems.todo = (session.case_status.todo||[]).map(t => ({text:t, status:'todo'}));
-          panelItems.flags = (session.case_status.flags||[]).map(t => ({text:t, status:'flagged'}));
-          renderPanel();
-          const total = panelItems.progress.length + panelItems.todo.length + panelItems.flags.length;
-          if (total > 0) {
-            document.getElementById('panel-subtitle').textContent =
-              `${panelItems.progress.length} done · ${panelItems.todo.length} to-do · ${panelItems.flags.length} flags`;
-          }
+        // Store previous session for Last Session tab
+        previousSession = session;
+        const prevTab = document.getElementById('prev-findings-tab');
+        if (prevTab) {
+          prevTab.style.display = '';
+          prevTab.style.color = '#60a5fa';
+          prevTab.style.fontWeight = '700';
         }
+
+        // Start fresh panel — bot will rebuild from conversation
+        panelItems = { progress: [], todo: [], flags: [], forms: [] };
+        renderPanel();
         // Send session file to AI so it can greet them properly
         const resumeMsg = `RETURNING VETERAN SESSION FILE:\n${JSON.stringify(session, null, 2)}`;
         await sendToAI(resumeMsg, true);
@@ -1193,7 +1247,27 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       const ext = file.name.split('.').pop().toLowerCase();
 
       try {
-        if (ext === 'pdf') {
+        if (ext === 'json') {
+          // Could be a session resume file uploaded mid-chat
+          const text = await new Promise(r => {
+            const reader = new FileReader();
+            reader.onload = () => r(reader.result);
+            reader.readAsText(file);
+          });
+          try {
+            const sessionData = JSON.parse(text);
+            if (sessionData.resume_instruction) {
+              previousSession = sessionData;
+              const prevTab = document.getElementById('prev-findings-tab');
+              if (prevTab) { prevTab.style.display = ''; prevTab.style.color = '#60a5fa'; prevTab.style.fontWeight = '700'; }
+              allExtractedText += `\n\n=== SESSION RESUME FILE ===\n${text}`;
+            } else {
+              allExtractedText += `\n\n=== ${file.name} ===\n${text.substring(0, 5000)}`;
+            }
+          } catch(e) {
+            allExtractedText += `\n\n=== ${file.name} ===\n${text.substring(0, 5000)}`;
+          }
+        } else if (ext === 'pdf') {
           updateProgress('Reading PDF...', 5, file.name);
           let text = '';
           try {
@@ -1460,6 +1534,32 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         </svg>
         <p>Nothing here yet — keep talking and this will fill in.</p>
       </div>`;
+      return;
+    }
+
+    if (activeTab === 'previous') {
+      if (!previousSession) {
+        content.innerHTML = `<div class="empty-panel"><p>No previous session loaded.</p></div>`;
+        return;
+      }
+      const cs = previousSession.case_status || {};
+      const sections = [
+        { label: 'What was completed', items: cs.completed || [], icon: '✓', color: '#34d399' },
+        { label: 'What was left to do', items: cs.todo || [], icon: '→', color: '#f59e0b' },
+        { label: 'Flags from last session', items: cs.flags || [], icon: '!', color: '#f87171' },
+        { label: 'Forms identified', items: cs.forms_needed || [], icon: '📋', color: '#60a5fa' }
+      ];
+      content.innerHTML = sections.filter(s => s.items.length > 0).map(s => `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:${s.color};text-transform:uppercase;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;">${s.label}</div>
+          ${s.items.map(item => `
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--bg-secondary);border-radius:6px;margin-bottom:6px;border:1px solid var(--border);">
+              <span style="color:${s.color};font-weight:700;flex-shrink:0;margin-top:1px;">${s.icon}</span>
+              <span style="font-size:13px;color:var(--text-muted);line-height:1.5;">${item}</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
       return;
     }
 
