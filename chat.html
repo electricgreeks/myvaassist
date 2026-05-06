@@ -875,33 +875,50 @@ One more thing before you file — the VA needs to see a connection between your
 
 IMPORTANT: After outputting the summary, shift into "filing guide" mode. The veteran may come back mid-form with questions like "what does fully developed claim mean?", "what do I put for nexus?", "should I check yes or no here?" — answer these directly, simply, and specifically. Never say "consult a VSO" for simple form questions — just answer them.
 
-NEXUS LETTERS: When a veteran asks for a nexus letter (either via the "Draft Nexus Letter" button or in conversation), collect this information ONE question at a time before drafting:
+NEXUS LETTERS: When a veteran asks for a nexus letter (either via the "Draft Nexus Letter" button or in conversation), collect this information ONE question at a time before drafting. Do not generate the letter until you have ALL of these:
 1. What condition are they claiming? (e.g., hearing loss, Crohn's disease)
-2. What specific event, exposure, or injury during service caused or contributed to it?
-3. When and where did the exposure/event occur?
-4. What is the veteran's name?
-5. What doctor will sign this letter? (name and specialty if known)
+2. What specific event, exposure, or injury during service caused or contributed to it? (if not already known from conversation)
+3. When and where did the exposure/event occur? (if not already known)
+4. What is the veteran's full legal name? (if not already known)
+5. Doctor's full name and credentials (MD, DO, etc.)
+6. Doctor's practice or hospital name
+7. Doctor's full mailing address (street, city, state, zip)
+8. Doctor's phone number
+
+Only after collecting all 8 items, generate the complete professional nexus letter. If you already know some of these from the conversation, skip those questions — only ask what you don't know yet.
 
 Once you have these, generate a complete professional nexus letter template in this format:
 
 ---
 [DATE]
 
-To Whom It May Concern / Department of Veterans Affairs
+Department of Veterans Affairs
+Evidence Intake Center
+PO Box 4444
+Janesville, WI 53547-4444
 
-RE: Nexus Opinion — [VETERAN NAME], VA File #[FILE NUMBER IF KNOWN]
+RE: Nexus Medical Opinion — [VETERAN FULL NAME], VA File #[FILE NUMBER IF KNOWN]
 
-I, [DOCTOR NAME], [credentials], have treated [veteran name] and reviewed their medical history. Based on my clinical evaluation and review of available records, it is my medical opinion that [CONDITION] is at least as likely as not (50% or greater probability) connected to [veteran's] military service.
+To Whom It May Concern:
 
-MEDICAL FINDINGS: [specific findings about the condition]
+I, [DOCTOR FULL NAME], [CREDENTIALS], am a licensed physician practicing at [PRACTICE NAME], located at [PRACTICE FULL ADDRESS]. My phone number is [PHONE NUMBER].
 
-BASIS FOR OPINION: [veteran served at X location from X to X, was exposed to Y, condition first appeared/was documented Z]
+I have treated [VETERAN NAME] and reviewed their relevant medical history. Based on my clinical evaluation and review of available records, it is my medical opinion that [CONDITION] is at least as likely as not (50% or greater probability) directly connected to [VETERAN NAME]'s military service.
 
-This opinion is based on: [medical literature, treatment records, service records reviewed]
+MEDICAL FINDINGS: [Doctor — please describe: current diagnosis, symptoms, severity, treatment history, and how long patient has had this condition]
+
+BASIS FOR OPINION: [VETERAN NAME] served at [BASE/LOCATION] from [DATES]. During this period, [he/she/they] was exposed to [SPECIFIC CHEMICALS/EXPOSURES]. Medical literature establishes a connection between [EXPOSURE] and [CONDITION]. [Add specific studies or medical rationale here.]
+
+RECORDS REVIEWED: [List: service records, VA records, private medical records, lab results, imaging reviewed]
+
+It is my professional medical opinion, based on reasonable medical certainty, that [CONDITION] is at least as likely as not (50% or greater probability) caused by or the result of [VETERAN NAME]'s military service and exposures described above.
 
 Signature: _______________________
-[Doctor name, credentials, practice]
-[Date]
+[DOCTOR FULL NAME], [CREDENTIALS]
+[PRACTICE NAME]
+[PRACTICE FULL ADDRESS]
+[PHONE NUMBER]
+Date: ___________________________
 ---
 
 Tell them: "Print this, bring it to your doctor. Ask them to review it, adjust anything that's not accurate, sign it, and put it on their letterhead. Then submit it with your claim."
@@ -1102,6 +1119,9 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     let opener;
     if (mode === 'new') {
       opener = `Thank you for your service. I'm your VA assistant — I'm here to help you file your first disability claim.\n\nLet's start simple. Tell me in your own words — what health conditions or injuries do you believe are connected to your military service? Don't worry about the right terminology. Just tell me what's going on with your health and how it relates to your time in service.`;
+      // Inject a silent system note so bot never re-asks filing status
+      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has confirmed they are filing for the FIRST TIME. Never ask if they have filed before or what their filing status is. You already know: first time filer.]' });
+      conversationHistory.push({ role: 'assistant', content: '[Understood. This is a first-time filer. I will not ask about prior claims.]' });
     } else if (mode === 'nexus') {
       opener = `Thank you for your service. I can help you draft a nexus letter — that's the doctor's opinion letter that connects your condition to your military service.\n\nTo write a strong one, I'll need a few things from you. Let's start simple.\n\n→ What condition are you trying to connect to your service?`;
     } else {
