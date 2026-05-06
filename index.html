@@ -816,6 +816,33 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   });
 
   async function startConversation() {
+    // Check if returning veteran uploaded session file from landing page
+    const resumeData = sessionStorage.getItem('resumeSession');
+    if (resumeData) {
+      sessionStorage.removeItem('resumeSession');
+      try {
+        const session = JSON.parse(resumeData);
+        // Restore panel state
+        if (session.case_status) {
+          panelItems.progress = (session.case_status.completed||[]).map(t => ({text:t, status:'done'}));
+          panelItems.todo = (session.case_status.todo||[]).map(t => ({text:t, status:'todo'}));
+          panelItems.flags = (session.case_status.flags||[]).map(t => ({text:t, status:'flagged'}));
+          renderPanel();
+          const total = panelItems.progress.length + panelItems.todo.length + panelItems.flags.length;
+          if (total > 0) {
+            document.getElementById('panel-subtitle').textContent =
+              `${panelItems.progress.length} done · ${panelItems.todo.length} to-do · ${panelItems.flags.length} flags`;
+          }
+        }
+        // Send session file to AI so it can greet them properly
+        const resumeMsg = `RETURNING VETERAN SESSION FILE:\n${JSON.stringify(session, null, 2)}`;
+        await sendToAI(resumeMsg, true);
+        enableExports();
+        return;
+      } catch(e) {
+        console.warn('Could not parse resume session:', e);
+      }
+    }
     const opener = `Thank you for your service. I'm your VA assistant — I'm here to help you with your claim.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
     appendMessage('ai', opener);
   }
