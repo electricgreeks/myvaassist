@@ -884,7 +884,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         canvas.height = Math.round(img.height * scale);
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.40).split(',')[1]);
+        resolve(canvas.toDataURL('image/jpeg', 0.30).split(',')[1]);
       };
       img.onerror = () => resolve(base64); // fallback to original
       img.src = 'data:image/jpeg;base64,' + base64;
@@ -1033,18 +1033,19 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
   // ── Send image batches to Claude via proxy ─────────────
   async function readImagesWithClaude(jpegs, filename) {
     const BATCH = 4;
-    let extractedText = '';
     const totalImages = jpegs.length;
 
+    // Build all batches
+    const batches = [];
     for (let start = 0; start < totalImages; start += BATCH) {
-      const batch = jpegs.slice(start, start + BATCH);
-      const batchEnd = Math.min(start + BATCH, totalImages);
-      updateProgress(
-        `Reading pages ${start + 1}–${batchEnd} of ${totalImages}...`,
-        80 + Math.round((start / totalImages) * 18),
-        filename
-      );
+      batches.push({ start, batch: jpegs.slice(start, start + BATCH) });
+    }
 
+    updateProgress(`Reading ${totalImages} pages in ${batches.length} parallel batches...`, 60, filename);
+
+    // Fire all batches in parallel
+    const results = await Promise.all(batches.map(({ start, batch }) => {
+      const batchEnd = Math.min(start + BATCH, totalImages);
       const blocks = [
         {
           type: 'text',
@@ -1056,28 +1057,25 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         }))
       ];
 
-      try {
-        const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system: 'You are a document reader. Extract all text from images exactly as written.',
-            messages: [{ role: 'user', content: blocks }],
-            max_tokens: 4000
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          extractedText += '\n' + (data.content[0]?.text || '');
-        } else {
-          throw new Error('Batch failed: ' + res.status);
-        }
-      } catch(err) {
-        console.error('Batch read error:', err);
-        extractedText += '\n[Pages ' + (start + 1) + '-' + batchEnd + ' could not be read]';
-      }
-    }
-    return extractedText;
+      return fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: 'You are a document reader. Extract all text from images exactly as written.',
+          messages: [{ role: 'user', content: blocks }],
+          max_tokens: 4000
+        })
+      })
+      .then(res => res.ok ? res.json() : Promise.reject('Batch failed: ' + res.status))
+      .then(data => data.content[0]?.text || '')
+      .catch(err => {
+        console.error('Batch error pages', start + 1, '-', Math.min(start + BATCH, totalImages), err);
+        return '[Pages ' + (start + 1) + '-' + Math.min(start + BATCH, totalImages) + ' could not be read]';
+      });
+    }));
+
+    updateProgress('Combining results...', 95, filename);
+    return results.join('\n');
   }
 
   // ── File Upload ────────────────────────────────────────
@@ -1114,8 +1112,8 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         reader.onload = () => r(reader.result.split(',')[1]);
         reader.readAsDataURL(file);
       })));
-      // Compress each image to 700px max width before sending
-      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 700)));
+      // Compress each image to 500px max width before sending
+      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 500)));
       const imgText = await readImagesWithClaude(allBase64, imageFiles.map(f=>f.name).join(', '));
       const imgLabel = imageFiles.length > 1 ? imageFiles.length + ' uploaded images' : imageFiles[0].name;
       allExtractedText += `\n\n=== ${imgLabel} ===\n${imgText}`;
