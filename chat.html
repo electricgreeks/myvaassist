@@ -794,14 +794,20 @@ FORMS GUIDANCE: Only add forms to the "forms" array when you have identified the
 - 21-0781: PTSD stressor statement (url: https://www.va.gov/find-forms/about-form-21-0781/)
 - 21-4142a: General release for medical records (url: https://www.vba.va.gov/pubs/forms/VBA-21-4142a-ARE.pdf/)
 
-CONVERSATION STYLE:
-- Start by warmly greeting them and asking them to tell you what's going on
-- Ask one or two focused follow-up questions per message — never overwhelm
-- When they upload files, acknowledge what you're seeing and ask targeted questions about gaps or discrepancies you notice
-- As you learn more, add items to the panel — things completed, things they need to do, and things that look problematic
-- Keep panel items specific and actionable, not generic
-- If they've been denied, find out: what condition, what reason given, what evidence exists, what's missing
-- Guide them toward the strongest possible claim or appeal strategy
+CONVERSATION STYLE - CRITICAL RULES:
+- Ask ONE question per message. Never two or three. One. Wait for their answer, then ask the next.
+- Keep responses SHORT. 2-4 sentences max per response during the intake conversation. Do not lecture or explain at length until they ask you to.
+- NEVER assume branch of service. Key West, Camp Lejeune, and other bases had Army, Navy, Air Force, Coast Guard, and Marines. Always ask.
+- NEVER assume gender, relationship to veteran, or filing status. Ask.
+- When they give you an answer, acknowledge it briefly (one sentence), then ask your next single question.
+- If they upload files, acknowledge what you found briefly, then ask ONE targeted question about the most important gap.
+- As you learn more, add items to the panel — things completed, things they need to do, and things that look problematic.
+- Keep panel items specific and actionable, not generic.
+- Guide them toward the strongest possible claim or appeal strategy.
+
+FORM WALKTHROUGH: If the veteran asks for help filling out a form or wants VSO-style guidance completing paperwork, shift into form walkthrough mode. Go through the form section by section, asking ONE field at a time, collecting their answers, and building a completed pre-fill summary as you go. When done, output the complete filled answers as a formatted summary they can use to complete the real form.
+
+NEXUS LETTERS: If the veteran's case would benefit from a nexus letter (connecting a condition to service), proactively mention it and offer to draft one based on what you know about their case. A nexus letter is a doctor's opinion letter — you can generate a template they bring to their doctor to review, sign, and put on letterhead.
 
 You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.
 
@@ -1418,7 +1424,24 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     if (panel.progress) panelItems.progress = panel.progress;
     if (panel.todo) panelItems.todo = [...panelItems.todo, ...panel.todo.filter(n => !panelItems.todo.find(e => e.text === n.text))];
     if (panel.flags) panelItems.flags = panel.flags;
-    if (panel.forms) panelItems.forms = [...(panelItems.forms||[]), ...panel.forms.filter(n => !(panelItems.forms||[]).find(e => e.number === n.number))];
+    if (panel.forms) {
+      const prevCount = (panelItems.forms||[]).length;
+      panelItems.forms = [...(panelItems.forms||[]), ...panel.forms.filter(n => !(panelItems.forms||[]).find(e => e.number === n.number))];
+      // Flash the Forms tab if new forms were added
+      if (panelItems.forms.length > prevCount) {
+        const formsTab = document.querySelector('.tab[onclick*="forms"]');
+        if (formsTab) {
+          formsTab.style.animation = 'none';
+          formsTab.style.color = '#60a5fa';
+          formsTab.style.fontWeight = '700';
+          setTimeout(() => {
+            formsTab.style.transition = 'color 1s';
+            formsTab.style.color = '';
+            formsTab.style.fontWeight = '';
+          }, 3000);
+        }
+      }
+    }
     renderPanel();
 
     const total = panelItems.progress.length + panelItems.todo.length + panelItems.flags.length;
