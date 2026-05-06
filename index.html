@@ -884,7 +884,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         canvas.height = Math.round(img.height * scale);
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.55).split(',')[1]);
+        resolve(canvas.toDataURL('image/jpeg', 0.40).split(',')[1]);
       };
       img.onerror = () => resolve(base64); // fallback to original
       img.src = 'data:image/jpeg;base64,' + base64;
@@ -1025,7 +1025,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       await page.render({ canvasContext: ctx, viewport }).promise;
-      jpegs.push(canvas.toDataURL('image/jpeg', 0.6).split(',')[1]);
+      jpegs.push(canvas.toDataURL('image/jpeg', 0.40).split(',')[1]);
     }
     return jpegs;
   }
@@ -1114,8 +1114,8 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         reader.onload = () => r(reader.result.split(',')[1]);
         reader.readAsDataURL(file);
       })));
-      // Compress each image to 900px max width before sending — kills the 413
-      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 900)));
+      // Compress each image to 700px max width before sending
+      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 700)));
       const imgText = await readImagesWithClaude(allBase64, imageFiles.map(f=>f.name).join(', '));
       const imgLabel = imageFiles.length > 1 ? imageFiles.length + ' uploaded images' : imageFiles[0].name;
       allExtractedText += `\n\n=== ${imgLabel} ===\n${imgText}`;
