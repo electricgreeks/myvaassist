@@ -1130,7 +1130,32 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
 
     let allExtractedText = '';
 
+    // Pre-collect all image files to batch them together as one document
+    const imageFiles = [];
+    const nonImageFiles = [];
     for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+        imageFiles.push(file);
+      } else {
+        nonImageFiles.push(file);
+      }
+    }
+
+    // Process all images as one batched read (likely pages of the same document)
+    if (imageFiles.length > 0) {
+      updateProgress(`Reading ${imageFiles.length} image(s)...`, 20, imageFiles.map(f=>f.name).join(', '));
+      const allBase64 = await Promise.all(imageFiles.map(file => new Promise(r => {
+        const reader = new FileReader();
+        reader.onload = () => r(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+      })));
+      const imgText = await readImagesWithClaude(allBase64, imageFiles.map(f=>f.name).join(', '));
+      const imgLabel = imageFiles.length > 1 ? imageFiles.length + ' uploaded images' : imageFiles[0].name;
+      allExtractedText += `\n\n=== ${imgLabel} ===\n${imgText}`;
+    }
+
+    for (const file of nonImageFiles) {
       const ext = file.name.split('.').pop().toLowerCase();
 
       try {
@@ -1169,15 +1194,6 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
             allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
           }
 
-        } else if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
-          updateProgress('Reading image...', 30, file.name);
-          const reader = new FileReader();
-          const base64 = await new Promise(r => {
-            reader.onload = () => r(reader.result.split(',')[1]);
-            reader.readAsDataURL(file);
-          });
-          const text = await readImagesWithClaude([base64], file.name);
-          allExtractedText += `\n\n=== ${file.name} ===\n${text}`;
         }
       } catch(err) {
         console.error('File read error:', err);
