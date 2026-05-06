@@ -7,10 +7,5 @@
     "api/key.js": {
       "maxDuration": 10
     }
-  },
-  "api": {
-    "bodyParser": {
-      "sizeLimit": "20mb"
-    }
   }
 }
