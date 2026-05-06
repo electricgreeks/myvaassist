@@ -837,12 +837,23 @@ FORM WALKTHROUGH: If the veteran asks for help filling out a form or wants VSO-s
 
 IMPORTANT: Skip any field you already know from the conversation. Never re-ask.
 
-When walkthrough is complete, output:
+When walkthrough is complete, output the pre-fill summary AND then say exactly this:
+
 ===21-526EZ PRE-FILL SUMMARY===
 [formatted answers for every field collected]
 ===END===
 
-Tell them to use this summary to fill out the actual form at VA.gov or bring it to a VSO.
+---
+Your answers are ready. Here's what to do next:
+
+1. Keep this tab open
+2. Open a new tab and go to VA.gov to file online — it's faster than mailing a paper form and creates an official record right away
+3. Use your summary above to copy your answers into the VA.gov form
+4. If you get stuck on any question on the form, come back here and ask me — I'll explain exactly what to put
+
+→ Are you ready to start filing, or do you have any questions about your answers first?
+
+IMPORTANT: After outputting the summary, shift into "filing guide" mode. The veteran may come back mid-form with questions like "what does fully developed claim mean?", "what do I put for nexus?", "should I check yes or no here?" — answer these directly, simply, and specifically. Never say "consult a VSO" for simple form questions — just answer them.
 
 NEXUS LETTERS: If the veteran's case would benefit from a nexus letter (connecting a condition to service), proactively mention it and offer to draft one. When they agree, generate a complete professional nexus letter template in this format:
 
@@ -871,6 +882,14 @@ Tell them: "Print this, bring it to your doctor. Ask them to review it, adjust a
 A nexus letter is one of the most powerful pieces of evidence you can submit.
 
 You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.
+
+MID-FORM ASSISTANCE: If a veteran is filling out a VA form on VA.gov and comes back with a specific field question, answer it directly and simply. Common questions:
+- "Fully Developed Claim vs Standard" → FDC means you're submitting all evidence now and want a faster decision. Standard means VA will help gather evidence. FDC is usually better if you have your records ready.
+- "What is nexus?" → It means the connection between your condition and your military service. Write: "[condition] is related to my military service because [exposure/event during service]."
+- "Primary vs secondary condition" → Primary = caused directly by service. Secondary = caused by another service-connected condition.
+- "What is my IDES number?" → That's for active duty members going through the disability evaluation system. If they're a veteran, skip it.
+- "Effective date" → The date you first filed or the date your condition began — VA uses whichever is later. Just put today's date if unsure.
+Answer these without lecturing. One sentence if possible.
 
 RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_instruction" field, this is their session resume file from a previous visit. Read it carefully, greet them warmly, acknowledge what was accomplished last time, restore the panel with their previous case_status, and ask what has changed or what they've been able to accomplish since their last visit. Pick up exactly where you left off.`;
 
@@ -1455,6 +1474,26 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function appendMessage(role, text) {
+    // Detect pre-fill summary and inject a "File on VA.gov" button after it
+    if (role === 'ai' && text.includes('===21-526EZ PRE-FILL SUMMARY===')) {
+      setTimeout(() => {
+        const msgs = document.getElementById('messages');
+        const btn = document.createElement('div');
+        btn.style.cssText = 'margin:8px 0 16px 0;';
+        btn.innerHTML = `
+          <a href="https://www.va.gov/disability/file-disability-claim-form-21-526ez/" target="_blank"
+             style="display:inline-flex;align-items:center;gap:8px;background:#2563eb;color:white;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;text-decoration:none;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            Start filing on VA.gov — keep this tab open
+          </a>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Use your summary above to fill in your answers. Come back here if you get stuck.</div>
+        `;
+        msgs.appendChild(btn);
+        msgs.scrollTop = msgs.scrollHeight;
+      }, 500);
+    }
     const messages = document.getElementById('messages');
     const div = document.createElement('div');
     div.className = `message ${role}`;
