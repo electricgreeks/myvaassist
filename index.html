@@ -385,20 +385,33 @@
     </div>
 
     <div class="cta-group">
-      <a href="/chat.html" class="btn-primary">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-        </svg>
-        Start — Tell us what's going on
-      </a>
+      <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;">
+        <div style="font-size:12px;color:var(--text-muted);text-align:center;letter-spacing:0.05em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:4px;">What brings you here?</div>
+        
+        <a href="/chat.html?mode=denied" class="btn-primary" style="justify-content:flex-start;gap:12px;">
+          <span style="font-size:20px;">✋</span>
+          <span>
+            <div style="font-size:15px;font-weight:600;">My claim was denied</div>
+            <div style="font-size:12px;font-weight:400;opacity:0.8;">Appeal help, rating increase, or survivor benefits</div>
+          </span>
+        </a>
 
-      <button class="btn-return" onclick="document.getElementById('resume-input').click()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-        </svg>
-        I've been here before — upload my session file
-      </button>
-      <input type="file" id="resume-input" accept=".json" onchange="resumeSession(this)">
+        <a href="/chat.html?mode=new" class="btn-primary" style="justify-content:flex-start;gap:12px;background:var(--surface2);border:1px solid var(--border);">
+          <span style="font-size:20px;">📋</span>
+          <span>
+            <div style="font-size:15px;font-weight:600;">I'm filing for the first time</div>
+            <div style="font-size:12px;font-weight:400;opacity:0.8;">New disability claim or benefit application</div>
+          </span>
+        </a>
+
+        <button class="btn-return" onclick="document.getElementById('resume-input').click()" style="margin-top:4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          I've been here before — upload my session file
+        </button>
+        <input type="file" id="resume-input" accept=".json" onchange="resumeSession(this)">
+      </div>
     </div>
   </div>
 

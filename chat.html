@@ -843,7 +843,18 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         console.warn('Could not parse resume session:', e);
       }
     }
-    const opener = `Thank you for your service. I'm your VA assistant — I'm here to help you with your claim.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode') || 'denied';
+
+    // Store mode for use during file uploads
+    window.chatMode = mode;
+
+    let opener;
+    if (mode === 'new') {
+      opener = `Thank you for your service. I'm your VA assistant — I'm here to help you file your first disability claim.\n\nLet's start simple. Tell me in your own words — what health conditions or injuries do you believe are connected to your military service? Don't worry about the right terminology. Just tell me what's going on with your health and how it relates to your time in service.`;
+    } else {
+      opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
+    }
     appendMessage('ai', opener);
   }
 
@@ -1132,7 +1143,11 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     // Step 1: Immediately start the conversation — don't make them wait
     const fileNames = files.map(f => f.name).join(', ');
     const fileCount = files.length;
-    const immediateMsg = `The veteran just uploaded ${fileCount} file(s): ${fileNames}. I'm reading them now in the background — this takes 1-2 minutes. While I work on that, start the conversation immediately. Greet them warmly, tell them you're reading their documents, and ask them to tell you in their own words what's going on — what did the VA deny, how long ago, and what conditions are they claiming? Keep it conversational and warm. Do NOT wait for the document analysis — start talking now.`;
+    const mode = window.chatMode || 'denied';
+    const modeContext = mode === 'new'
+      ? `ask what conditions they're claiming and what branch/years they served — this is a first-time filer, so be encouraging and explain you'll walk them through the whole process`
+      : `ask what the VA denied, how long ago, and what conditions they're claiming — they're here to fight a denial or get a rating increase`;
+    const immediateMsg = `The veteran just uploaded ${fileCount} file(s): ${fileNames}. I'm reading them now in the background — this takes 1-2 minutes. While I work on that, start the conversation immediately. Greet them warmly, tell them you're reading their documents, and ${modeContext}. Keep it conversational and warm. Do NOT wait for the document analysis — start talking now.`;
     
     // Fire the opening conversation immediately (non-blocking)
     const openingPromise = sendToAI(immediateMsg, true);
