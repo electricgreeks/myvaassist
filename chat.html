@@ -732,6 +732,12 @@
         </svg>
         Download Action Plan
       </button>
+      <button class="export-btn" id="btn-nexus-letter" onclick="requestNexusLetter()" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);color:#34d399;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Draft Nexus Letter
+      </button>
     </div>
   </div>
 
@@ -857,7 +863,14 @@ One more thing before you file — the VA needs to see a connection between your
 
 IMPORTANT: After outputting the summary, shift into "filing guide" mode. The veteran may come back mid-form with questions like "what does fully developed claim mean?", "what do I put for nexus?", "should I check yes or no here?" — answer these directly, simply, and specifically. Never say "consult a VSO" for simple form questions — just answer them.
 
-NEXUS LETTERS: If the veteran's case would benefit from a nexus letter (connecting a condition to service), proactively mention it and offer to draft one. When they agree, generate a complete professional nexus letter template in this format:
+NEXUS LETTERS: When a veteran asks for a nexus letter (either via the "Draft Nexus Letter" button or in conversation), collect this information ONE question at a time before drafting:
+1. What condition are they claiming? (e.g., hearing loss, Crohn's disease)
+2. What specific event, exposure, or injury during service caused or contributed to it?
+3. When and where did the exposure/event occur?
+4. What is the veteran's name?
+5. What doctor will sign this letter? (name and specialty if known)
+
+Once you have these, generate a complete professional nexus letter template in this format:
 
 ---
 [DATE]
@@ -940,6 +953,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     let opener;
     if (mode === 'new') {
       opener = `Thank you for your service. I'm your VA assistant — I'm here to help you file your first disability claim.\n\nLet's start simple. Tell me in your own words — what health conditions or injuries do you believe are connected to your military service? Don't worry about the right terminology. Just tell me what's going on with your health and how it relates to your time in service.`;
+    } else if (mode === 'nexus') {
+      opener = `Thank you for your service. I can help you draft a nexus letter — that's the doctor's opinion letter that connects your condition to your military service.\n\nTo write a strong one, I'll need a few things from you. Let's start simple.\n\n→ What condition are you trying to connect to your service?`;
     } else {
       opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
     }
@@ -1234,6 +1249,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const mode = window.chatMode || 'denied';
     const modeContext = mode === 'new'
       ? `ask what conditions they're claiming and what branch/years they served — this is a first-time filer, so be encouraging and explain you'll walk them through the whole process`
+      : mode === 'nexus'
+      ? `they need a nexus letter — ask what condition they're claiming and what event or exposure during service caused it`
       : `ask what the VA denied, how long ago, and what conditions they're claiming — they're here to fight a denial or get a rating increase`;
     const immediateMsg = `The veteran just uploaded ${fileCount} file(s): ${fileNames}. I'm reading them now in the background — this takes 1-2 minutes. While I work on that, start the conversation immediately. Greet them warmly, tell them you're reading their documents, and ${modeContext}. Keep it conversational and warm. Do NOT wait for the document analysis — start talking now.`;
     
@@ -1831,6 +1848,14 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         </div>
       </div>
     `;
+  }
+
+  function requestNexusLetter() {
+    // Inject a message into the chat asking the bot to draft a nexus letter
+    const msg = "I'd like you to draft a nexus letter for me to bring to my doctor.";
+    appendMessage('user', msg);
+    conversationHistory.push({ role: 'user', content: msg });
+    sendToAI(msg, false);
   }
 
   function enableExports() {
