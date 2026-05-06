@@ -1,10 +1,16 @@
 {
   "functions": {
     "api/chat.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 1024
     },
     "api/key.js": {
       "maxDuration": 10
+    }
+  },
+  "api": {
+    "bodyParser": {
+      "sizeLimit": "20mb"
     }
   }
 }
