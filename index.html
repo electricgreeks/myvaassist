@@ -706,6 +706,7 @@
       <button class="tab active" onclick="switchTab('progress', this)">Progress</button>
       <button class="tab" onclick="switchTab('todo', this)">To-Do</button>
       <button class="tab" onclick="switchTab('flags', this)">Flags</button>
+      <button class="tab" onclick="switchTab('forms', this)">Forms</button>
     </div>
 
     <div class="panel-content" id="panel-content">
@@ -751,7 +752,7 @@
   // ── State ──────────────────────────────────────────────
   const API_KEY = typeof window !== 'undefined' && window.__ENV ? window.__ENV.ANTHROPIC_API_KEY : '';
   let conversationHistory = [];
-  let panelItems = { progress: [], todo: [], flags: [] };
+  let panelItems = { progress: [], todo: [], flags: [], forms: [] };
   let activeTab = 'progress';
   let uploadedFiles = [];
   let sessionStarted = false;
@@ -768,19 +769,30 @@ Format (always at the very end of your response, after your conversational text)
 <<<PANEL_UPDATE>>>
 {
   "progress": [
-    {"text": "Reviewed denial letter dated March 2024", "status": "done"},
-    {"text": "Identified PTSD as primary claim condition", "status": "done"}
+    {"text": "Reviewed denial letter dated March 2024", "status": "done"}
   ],
   "todo": [
-    {"text": "Request buddy statement from fellow service member", "status": "todo"},
-    {"text": "Obtain private nexus letter from treating physician", "status": "todo"}
+    {"text": "Request buddy statement from fellow service member", "status": "todo"}
   ],
   "flags": [
-    {"text": "Denial cites lack of nexus — this is your main hurdle", "status": "flagged"},
-    {"text": "C&P exam notes appear incomplete in file", "status": "flagged"}
+    {"text": "Denial cites lack of nexus — this is your main hurdle", "status": "flagged"}
+  ],
+  "forms": [
+    {"number": "21-4142", "name": "Authorization to Release Private Medical Records", "reason": "VA requested records in Dec 2023 never received", "url": "https://www.vba.va.gov/pubs/forms/VBA-21-4142-ARE.pdf"},
+    {"number": "10-182", "name": "Decision Review Request: Board of Veterans Appeals", "reason": "Case is at Board level — appeal deadline approaching", "url": "https://www.va.gov/find-forms/about-form-10-182/"}
   ]
 }
 <<<END_PANEL>>>
+
+FORMS GUIDANCE: Only add forms to the "forms" array when you have identified the veteran's specific situation and know which forms apply. Common forms:
+- 21-4142: Always add if private medical records are missing or needed
+- 21-526EZ: New disability claim (url: https://www.va.gov/find-forms/about-form-21-526ez/)
+- 20-0995: Supplemental claim with new evidence (url: https://www.va.gov/find-forms/about-form-20-0995/)
+- 10-182: Board of Veterans Appeals (url: https://www.va.gov/find-forms/about-form-10-182/)
+- 20-0996: Higher Level Review (url: https://www.va.gov/find-forms/about-form-20-0996/)
+- 21-22: Appoint a VSO representative (url: https://www.va.gov/find-forms/about-form-21-22/)
+- 21-0781: PTSD stressor statement (url: https://www.va.gov/find-forms/about-form-21-0781/)
+- 21-4142a: General release for medical records (url: https://www.vba.va.gov/pubs/forms/VBA-21-4142a-ARE.pdf/)
 
 CONVERSATION STYLE:
 - Start by warmly greeting them and asking them to tell you what's going on
@@ -791,7 +803,9 @@ CONVERSATION STYLE:
 - If they've been denied, find out: what condition, what reason given, what evidence exists, what's missing
 - Guide them toward the strongest possible claim or appeal strategy
 
-You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.`;
+You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.
+
+RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_instruction" field, this is their session resume file from a previous visit. Read it carefully, greet them warmly, acknowledge what was accomplished last time, restore the panel with their previous case_status, and ask what has changed or what they've been able to accomplish since their last visit. Pick up exactly where you left off.\`;
 
   // ── Init ──────────────────────────────────────────────
   window.addEventListener('load', () => {
@@ -1355,6 +1369,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
     if (panel.progress) panelItems.progress = panel.progress;
     if (panel.todo) panelItems.todo = [...panelItems.todo, ...panel.todo.filter(n => !panelItems.todo.find(e => e.text === n.text))];
     if (panel.flags) panelItems.flags = panel.flags;
+    if (panel.forms) panelItems.forms = [...(panelItems.forms||[]), ...panel.forms.filter(n => !(panelItems.forms||[]).find(e => e.number === n.number))];
     renderPanel();
 
     const total = panelItems.progress.length + panelItems.todo.length + panelItems.flags.length;
@@ -1373,6 +1388,28 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         </svg>
         <p>Nothing here yet — keep talking and this will fill in.</p>
       </div>`;
+      return;
+    }
+
+    if (activeTab === 'forms') {
+      const forms = panelItems.forms || [];
+      if (forms.length === 0) {
+        content.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>Forms will appear here as your case develops.</p></div>`;
+        return;
+      }
+      content.innerHTML = forms.map(f => `
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="background:#1e3a5f;color:#60a5fa;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:IBM Plex Mono,monospace;">VA ${f.number}</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${f.name}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">${f.reason}</div>
+          <a href="${f.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#2563eb;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;text-decoration:none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Download from VA.gov
+          </a>
+        </div>
+      `).join('');
       return;
     }
 
@@ -1400,6 +1437,8 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
   // ── Exports ────────────────────────────────────────────
   function exportSummary() {
     const date = new Date().toLocaleDateString();
+
+    // Human-readable summary
     const lines = [
       `MYVAASSIST SESSION SUMMARY`,
       `Generated: ${date}`,
@@ -1423,14 +1462,40 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
       `FLAGS:`,
       ...panelItems.flags.map(i => `  ! ${i.text}`),
       ``,
+      `FORMS NEEDED:`,
+      ...(panelItems.forms||[]).map(f => `  VA ${f.number} — ${f.name}\n    Why: ${f.reason}\n    Download: ${f.url}`),
+      ``,
       `${'='.repeat(50)}`,
       `HOW TO RESUME NEXT SESSION:`,
       `Upload this file at myvaassist.com and the assistant will pick up where you left off.`,
       ``,
       `NOTE: This summary is for your personal use. Consider working with a free VSO for representation.`
     ];
+    downloadText(lines.join('\n'), `myvaassist-summary-${Date.now()}.txt`);
 
-    downloadText(lines.join('\n'), `myvaassist-session-${Date.now()}.txt`);
+    // Machine-readable session file Claude can parse next visit
+    const sessionData = {
+      version: '1.0',
+      generated: new Date().toISOString(),
+      resume_instruction: 'RETURNING VETERAN SESSION FILE. Read this entire block before responding. Greet them by name if known, acknowledge what was accomplished, and ask what has changed since last time.',
+      case_status: {
+        completed: panelItems.progress.map(i => i.text),
+        todo: panelItems.todo.map(i => i.text),
+        flags: panelItems.flags.map(i => i.text),
+        forms_needed: (panelItems.forms||[]).map(f => `VA ${f.number} — ${f.name}`)
+      },
+      conversation_summary: conversationHistory
+        .filter(m => m.role === 'assistant')
+        .slice(-3)
+        .map(m => m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim())
+        .join(' | ')
+        .substring(0, 2000),
+      full_transcript: conversationHistory.map(m => ({
+        role: m.role,
+        content: m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim().substring(0, 500)
+      }))
+    };
+    downloadText(JSON.stringify(sessionData, null, 2), `myvaassist-resume-${Date.now()}.json`);
   }
 
   function exportActionPlan() {
