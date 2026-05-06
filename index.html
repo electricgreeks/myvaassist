@@ -912,21 +912,14 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
         messages: [{
           role: 'user',
           content: [
-            {
-              type: 'document',
-              source: { type: 'base64', media_type: 'application/pdf', data: base64 }
-            },
-            {
-              type: 'text',
-              text: 'Extract ALL text from this VA document exactly as written. Preserve all names, dates, claim numbers, conditions, ratings, decision language, and denial reasons. Skip only repetitive boilerplate regulation lists.'
-            }
+            { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
+            { type: 'text', text: 'Extract ALL text from this VA document exactly as written. Preserve all names, dates, claim numbers, conditions, ratings, decision language, and denial reasons. Skip only repetitive boilerplate regulation lists.' }
           ]
         }],
         max_tokens: 8000,
         betas: ['pdfs-2024-09-25']
       })
     });
-
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error('PDF read failed: ' + (err?.error?.message || res.status));
@@ -1039,7 +1032,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
 
   // ── Send image batches to Claude via proxy ─────────────
   async function readImagesWithClaude(jpegs, filename) {
-    const BATCH = 3;
+    const BATCH = 4;
     let extractedText = '';
     const totalImages = jpegs.length;
 
@@ -1055,7 +1048,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
       const blocks = [
         {
           type: 'text',
-          text: `These are pages ${start + 1} to ${batchEnd} from a VA document. Extract ALL text exactly as written. Preserve names, dates, condition names, ratings, decisions, denial reasons. Skip repetitive legal boilerplate pages (regulation lists, standard VA form text). Return only the extracted text.`
+          text: `These are pages ${start + 1} to ${batchEnd} from a VA document. Extract ALL text exactly as written. Preserve names, dates, condition names, ratings, decisions, denial reasons. Return only the extracted text.`
         },
         ...batch.map(jpeg => ({
           type: 'image',
@@ -1077,40 +1070,11 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
           const data = await res.json();
           extractedText += '\n' + (data.content[0]?.text || '');
         } else {
-          const errData = await res.json().catch(() => ({}));
-          const isContentFilter = errData?.error?.message?.includes('content filtering');
-          if (isContentFilter) {
-            console.warn('Content filter hit, retrying pages individually...');
-            for (let pi = start; pi < Math.min(start + BATCH, totalImages); pi++) {
-              try {
-                const singleImg = await resizeJpeg(jpegs[pi], 600);
-                const singleBlock = [
-                  { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: singleImg } },
-                  { type: 'text', text: 'Extract all text from this page exactly as written.' }
-                ];
-                const r2 = await fetch('/api/chat', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ system: 'You are a document reader. Extract all text from images exactly as written.', messages: [{ role: 'user', content: singleBlock }], max_tokens: 2000 })
-                });
-                if (r2.ok) {
-                  const d2 = await r2.json();
-                  extractedText += '\n' + (d2.content[0]?.text || '');
-                } else {
-                  extractedText += '\n[Page ' + (pi + 1) + ' could not be read]';
-                }
-              } catch(e2) {
-                extractedText += '\n[Page ' + (pi + 1) + ' could not be read]';
-              }
-            }
-          } else {
-            console.error('Batch error:', res.status, errData);
-            extractedText += '\n[Pages ' + (start + 1) + '-' + Math.min(start + BATCH, totalImages) + ' could not be read]';
-          }
+          throw new Error('Batch failed: ' + res.status);
         }
       } catch(err) {
         console.error('Batch read error:', err);
-        extractedText += '\n[Pages ' + (start + 1) + '-' + Math.min(start + BATCH, totalImages) + ' could not be read]';
+        extractedText += '\n[Pages ' + (start + 1) + '-' + batchEnd + ' could not be read]';
       }
     }
     return extractedText;
@@ -1145,11 +1109,13 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
     // Process all images as one batched read (likely pages of the same document)
     if (imageFiles.length > 0) {
       updateProgress(`Reading ${imageFiles.length} image(s)...`, 20, imageFiles.map(f=>f.name).join(', '));
-      const allBase64 = await Promise.all(imageFiles.map(file => new Promise(r => {
+      const allBase64Raw = await Promise.all(imageFiles.map(file => new Promise(r => {
         const reader = new FileReader();
         reader.onload = () => r(reader.result.split(',')[1]);
         reader.readAsDataURL(file);
       })));
+      // Compress each image to 900px max width before sending — kills the 413
+      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 900)));
       const imgText = await readImagesWithClaude(allBase64, imageFiles.map(f=>f.name).join(', '));
       const imgLabel = imageFiles.length > 1 ? imageFiles.length + ' uploaded images' : imageFiles[0].name;
       allExtractedText += `\n\n=== ${imgLabel} ===\n${imgText}`;
