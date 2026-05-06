@@ -1,15 +1,6 @@
-// Disable Vercel body size limit — we handle large image payloads
-module.exports.config = {
-  api: {
-    bodyParser: false,
-    responseLimit: false,
-    sizeLimit: '50mb'
-  }
-};
-
 const https = require('https');
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,7 +8,6 @@ module.exports = async function handler(req, res) {
   }
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Collect raw body
   const chunks = [];
   await new Promise((resolve, reject) => {
     req.on('data', chunk => chunks.push(chunk));
@@ -32,16 +22,14 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid JSON' });
   }
 
-  // Inject required fields
   body.model = 'claude-sonnet-4-20250514';
   if (!body.max_tokens) body.max_tokens = 4000;
 
-  // Build beta header
   const betas = ['pdfs-2024-09-25'];
   if (Array.isArray(body.betas)) {
     body.betas.forEach(b => { if (!betas.includes(b)) betas.push(b); });
   }
-  delete body.betas; // not an Anthropic field
+  delete body.betas;
 
   const payload = Buffer.from(JSON.stringify(body));
 
@@ -72,4 +60,13 @@ module.exports = async function handler(req, res) {
     proxyReq.write(payload);
     proxyReq.end();
   });
+}
+
+handler.config = {
+  api: {
+    bodyParser: false,
+    responseLimit: false
+  }
 };
+
+module.exports = handler;
