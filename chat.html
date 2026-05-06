@@ -1129,8 +1129,16 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       addFileChip(file.name);
     }
 
-    showProgress(files[0].name);
+    // Step 1: Immediately start the conversation — don't make them wait
+    const fileNames = files.map(f => f.name).join(', ');
+    const fileCount = files.length;
+    const immediateMsg = `The veteran just uploaded ${fileCount} file(s): ${fileNames}. I'm reading them now in the background — this takes 1-2 minutes. While I work on that, start the conversation immediately. Greet them warmly, tell them you're reading their documents, and ask them to tell you in their own words what's going on — what did the VA deny, how long ago, and what conditions are they claiming? Keep it conversational and warm. Do NOT wait for the document analysis — start talking now.`;
+    
+    // Fire the opening conversation immediately (non-blocking)
+    const openingPromise = sendToAI(immediateMsg, true);
 
+    // Step 2: Process files in parallel while conversation starts
+    showProgress(files[0].name);
     let allExtractedText = '';
 
     // Pre-collect all image files to batch them together as one document
@@ -1165,7 +1173,6 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
       try {
         if (ext === 'pdf') {
-          // Step 1: Try to extract digital text first (fast, works on typed PDFs)
           updateProgress('Reading PDF...', 5, file.name);
           let text = '';
           try {
@@ -1177,11 +1184,9 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
           const wordCount = text.trim().split(/\s+/).length;
 
           if (wordCount > 50) {
-            // Digital text worked — send it directly, no image needed
             updateProgress('Text extracted — analyzing...', 85, file.name);
             allExtractedText += `\n\n=== ${file.name} ===\n${text.substring(0, 20000)}`;
           } else {
-            // No readable text — render pages as JPEGs and send via image path (no size limit)
             updateProgress('Converting PDF pages to images...', 50, file.name);
             const jpegs = await renderPdfPages(file);
             let pdfText = '';
@@ -1191,7 +1196,6 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
             }
             allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
           }
-
         }
       } catch(err) {
         console.error('File read error:', err);
@@ -1199,12 +1203,15 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       }
     }
 
+    // Wait for opening message to finish before sending document analysis
+    await openingPromise;
+
     updateProgress('Analyzing...', 99, 'Sending to assistant...');
 
-    // Now send the full extracted text to the VA assistant
+    // Step 3: Now send the extracted document text as a follow-up
     const analysisBlocks = [{
       type: 'text',
-      text: `The veteran uploaded ${files.length} file(s). Here is the extracted text from all documents:\n${allExtractedText}\n\nAnalyze this as a VA benefits expert. Focus on: (1) veteran's name and file number, (2) specific conditions claimed, (3) what the VA decided on each condition — granted or denied, (4) exact reasons given for any denials, (5) ratings assigned, (6) key dates, (7) what evidence exists and what's missing, (8) strongest next steps. Ignore boilerplate legal text and standard regulation appendices. Update the side panel with specific actionable findings.`
+      text: `I've finished reading the documents. Here is the extracted text:\n${allExtractedText}\n\nNow integrate this with what the veteran has told you so far. As a VA benefits expert, identify: (1) veteran's name and file number, (2) specific conditions claimed, (3) what the VA decided on each — granted or denied, (4) exact denial reasons, (5) ratings assigned, (6) key dates, (7) evidence gaps, (8) strongest next steps. Cross-reference the documents with anything they've shared in conversation. Update the side panel. Keep your tone conversational — you're already mid-conversation with them.`
     }];
 
     removeProgress();
