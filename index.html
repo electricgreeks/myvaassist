@@ -1142,20 +1142,13 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
             updateProgress('Text extracted — analyzing...', 85, file.name);
             allExtractedText += `\n\n=== ${file.name} ===\n${text.substring(0, 20000)}`;
           } else {
-            // No readable text — try native PDF send first, fall back to canvas render
-            updateProgress('Reading scanned PDF...', 50, file.name);
+            // No readable text — render pages as JPEGs and send via image path (no size limit)
+            updateProgress('Converting PDF pages to images...', 50, file.name);
+            const jpegs = await renderPdfPages(file);
             let pdfText = '';
-            try {
-              pdfText = await readPdfWithClaude(file, file.name);
-            } catch(nativeErr) {
-              // Native send failed (likely too large) — render pages as JPEGs
-              console.warn('Native PDF send failed, falling back to canvas render:', nativeErr.message);
-              updateProgress('Converting pages to images...', 55, file.name);
-              const jpegs = await renderPdfPages(file);
-              if (jpegs.length > 0) {
-                updateProgress('Reading page images...', 70, file.name);
-                pdfText = await readImagesWithClaude(jpegs, file.name);
-              }
+            if (jpegs.length > 0) {
+              updateProgress(`Reading ${jpegs.length} PDF pages...`, 65, file.name);
+              pdfText = await readImagesWithClaude(jpegs, file.name);
             }
             allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
           }
