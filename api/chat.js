@@ -1,3 +1,12 @@
+// Disable Vercel body size limit — we handle large image payloads
+module.exports.config = {
+  api: {
+    bodyParser: false,
+    responseLimit: false,
+    sizeLimit: '50mb'
+  }
+};
+
 const https = require('https');
 
 module.exports = async function handler(req, res) {
@@ -8,14 +17,33 @@ module.exports = async function handler(req, res) {
   }
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Collect raw body chunks — bypasses Next.js bodyParser size limit
+  // Collect raw body
   const chunks = [];
   await new Promise((resolve, reject) => {
     req.on('data', chunk => chunks.push(chunk));
     req.on('end', resolve);
     req.on('error', reject);
   });
-  const rawBody = Buffer.concat(chunks);
+
+  let body;
+  try {
+    body = JSON.parse(Buffer.concat(chunks).toString());
+  } catch(e) {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+
+  // Inject required fields
+  body.model = 'claude-sonnet-4-20250514';
+  if (!body.max_tokens) body.max_tokens = 4000;
+
+  // Build beta header
+  const betas = ['pdfs-2024-09-25'];
+  if (Array.isArray(body.betas)) {
+    body.betas.forEach(b => { if (!betas.includes(b)) betas.push(b); });
+  }
+  delete body.betas; // not an Anthropic field
+
+  const payload = Buffer.from(JSON.stringify(body));
 
   const options = {
     hostname: 'api.anthropic.com',
@@ -23,10 +51,10 @@ module.exports = async function handler(req, res) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Content-Length': rawBody.length,
+      'Content-Length': payload.length,
       'x-api-key': process.env.ANTHROPIC_API_KEY,
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'pdfs-2024-09-25'
+      'anthropic-beta': betas.join(',')
     }
   };
 
@@ -41,7 +69,7 @@ module.exports = async function handler(req, res) {
       res.status(500).json({ error: err.message });
       resolve();
     });
-    proxyReq.write(rawBody);
+    proxyReq.write(payload);
     proxyReq.end();
   });
 };
