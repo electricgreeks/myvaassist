@@ -3,7 +3,13 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { system, messages, max_tokens } = req.body;
+  const { system, messages, max_tokens, betas } = req.body;
+
+  // Build beta header — always include pdf support, merge any extras
+  const betaList = ['pdfs-2024-09-25'];
+  if (Array.isArray(betas)) {
+    betas.forEach(b => { if (!betaList.includes(b)) betaList.push(b); });
+  }
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -12,7 +18,7 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'pdfs-2024-09-25'
+        'anthropic-beta': betaList.join(',')
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',

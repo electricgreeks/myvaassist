@@ -904,7 +904,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
 
     updateProgress('Sending PDF to VA assistant...', 70, filename);
 
-    const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1064,7 +1064,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
       ];
 
       try {
-        const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
+        const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1088,7 +1088,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
                   { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: singleImg } },
                   { type: 'text', text: 'Extract all text from this page exactly as written.' }
                 ];
-                const r2 = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
+                const r2 = await fetch('/api/chat', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ system: 'You are a document reader. Extract all text from images exactly as written.', messages: [{ role: 'user', content: singleBlock }], max_tokens: 2000 })
@@ -1228,7 +1228,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
     const typingEl = showTyping();
 
     try {
-      const response = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1266,7 +1266,7 @@ You are not a lawyer. Always remind them they can work with a VSO (Veterans Serv
     const typingEl = showTyping();
 
     try {
-      const response = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
