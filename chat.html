@@ -25,6 +25,7 @@
     --user-bubble: #1c2333;
     --ai-bubble: #131820;
     --panel-width: 340px;
+    --search-width: 420px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -366,74 +367,414 @@
     font-family: 'IBM Plex Mono', monospace;
   }
 
-  /* SIDE PANEL */
-  .side-panel {
-    width: var(--panel-width);
+  /* COLLAPSIBLE TOP PANEL BAR */
+  .top-panel-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    max-height: 36px;
+    z-index: 5;
+  }
+
+  .top-panel-bar.expanded {
+    max-height: 320px;
+  }
+
+  .top-panel-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    height: 36px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .top-panel-toggle:hover { background: var(--surface2); }
+
+  .top-panel-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .top-panel-label {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .top-panel-stats {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .top-panel-tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .top-panel-chevron {
+    color: var(--text-muted);
+    font-size: 10px;
+    transition: transform 0.3s;
+  }
+
+  .top-panel-bar.expanded .top-panel-chevron { transform: rotate(180deg); }
+
+  .top-panel-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .top-panel-tabs-row {
+    display: flex;
+    gap: 4px;
+    padding: 6px 18px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .top-panel-content {
+    padding: 10px 18px;
+    overflow-y: auto;
+    max-height: 240px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .top-panel-content::-webkit-scrollbar { width: 3px; }
+  .top-panel-content::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  /* MAIN LAYOUT - no side panel, now has search pane */
+  .main-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* SEARCH PANE */
+  .search-pane {
+    width: var(--search-width);
     background: var(--surface);
     border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     flex-shrink: 0;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    position: relative;
   }
 
-  .panel-header {
-    padding: 16px 18px 12px;
+  .search-pane.open {
+    transform: translateX(0);
+  }
+
+  .search-pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
 
-  .panel-title {
+  .search-pane-title {
     font-size: 11px;
     font-family: 'IBM Plex Mono', monospace;
     color: var(--text-muted);
     letter-spacing: 1px;
     text-transform: uppercase;
+  }
+
+  .search-pane-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .search-pane-close:hover { background: var(--surface2); color: var(--text); }
+
+  .search-pane-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .search-pane-body::-webkit-scrollbar { width: 3px; }
+  .search-pane-body::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  /* Search result cards */
+  .search-result-card {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .search-result-card:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .src-source {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: 4px;
   }
 
-  .panel-subtitle {
+  .src-title {
     font-size: 13px;
-    color: var(--text-dim);
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 5px;
+    line-height: 1.4;
   }
 
-  .panel-tabs {
+  .src-snippet {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .src-actions {
     display: flex;
-    gap: 4px;
-    padding: 10px 18px;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .src-btn {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .src-btn-read {
+    background: var(--accent);
+    color: white;
+  }
+
+  .src-btn-read:hover { background: #3b82f6; }
+
+  .src-btn-todo {
+    background: rgba(251,191,36,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(251,191,36,0.3);
+  }
+
+  .src-btn-todo:hover { background: rgba(251,191,36,0.25); }
+
+  /* Page reader view */
+  .page-reader {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .page-reader.active {
+    display: flex;
+  }
+
+  .page-reader-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
 
-  .tab {
-    font-size: 11px;
+  .page-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
     font-weight: 500;
-    padding: 5px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    color: var(--text-muted);
+    color: var(--accent);
     background: none;
     border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 5px;
+  }
+
+  .page-back-btn:hover { background: var(--accent-glow); }
+
+  .page-reader-title {
+    font-size: 12px;
+    color: var(--text-dim);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .page-todo-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: rgba(251,191,36,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(251,191,36,0.3);
+    cursor: pointer;
+  }
+
+  .page-todo-btn:hover { background: rgba(251,191,36,0.25); }
+
+  .page-reader-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .page-reader-content::-webkit-scrollbar { width: 3px; }
+  .page-reader-content::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  .page-reader-content h1, .page-reader-content h2, .page-reader-content h3 {
+    color: var(--text);
+    margin: 12px 0 6px;
+  }
+
+  .page-reader-content a {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  /* Search loading */
+  .search-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+    color: var(--text-muted);
+  }
+
+  .search-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .search-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 8px;
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .search-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-tab {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
     transition: all 0.15s;
+  }
+
+  .search-tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* SIDE PANEL (old) - replaced, keep for export buttons */
+  .panel-footer {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    color: var(--text-dim);
+    transition: all 0.15s;
+    width: 100%;
     font-family: 'DM Sans', sans-serif;
   }
 
-  .tab.active {
+  .export-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .export-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .export-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .export-btn:disabled:hover {
+    border-color: var(--border2);
+    color: var(--text-dim);
     background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border2);
   }
-
-  .tab:hover:not(.active) { color: var(--text-dim); }
-
-  .panel-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px 18px;
-  }
-
-  .panel-content::-webkit-scrollbar { width: 3px; }
-  .panel-content::-webkit-scrollbar-thumb { background: var(--border2); }
 
   /* Checklist items */
   .section-label {
@@ -668,91 +1009,125 @@
   </div>
 </header>
 
-<div class="main">
+<div class="main-wrapper" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
 
-  <!-- CHAT AREA -->
-  <div class="chat-area">
-
-    <div class="messages" id="messages"></div>
-
-    <div class="input-area">
-      <div class="uploaded-files-row" id="uploaded-files"></div>
-      <div class="input-wrap">
-        <label class="upload-label" for="file-input">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-          </svg>
-          Upload Files
-        </label>
-        <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt">
-        <textarea id="user-input" placeholder="Tell me what's going on with your claim..." rows="1"></textarea>
-        <button class="send-btn" id="send-btn" onclick="sendMessage()">
-          <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
-        </button>
+  <!-- COLLAPSIBLE TOP PANEL -->
+  <div class="top-panel-bar" id="top-panel-bar">
+    <div class="top-panel-toggle" onclick="toggleTopPanel()">
+      <div class="top-panel-left">
+        <span class="top-panel-label">Case Progress</span>
+        <span class="top-panel-stats" id="panel-subtitle">Building your action plan...</span>
       </div>
-      <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
-    </div>
-
-  </div>
-
-  <!-- SIDE PANEL -->
-  <div class="side-panel">
-    <div class="panel-header">
-      <div class="panel-title">Case Progress</div>
-      <div class="panel-subtitle" id="panel-subtitle">Building your action plan...</div>
-    </div>
-
-    <div class="panel-tabs">
-      <button class="tab active" onclick="switchTab('progress', this)">Progress</button>
-      <button class="tab" onclick="switchTab('todo', this)">To-Do</button>
-      <button class="tab" onclick="switchTab('flags', this)">Flags</button>
-      <button class="tab" onclick="switchTab('forms', this)">Forms</button>
-      <button class="tab" id="prev-findings-tab" onclick="switchTab('previous', this)" style="display:none;">Last Session</button>
-    </div>
-
-    <div class="panel-content" id="panel-content">
-      <div class="empty-panel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-        </svg>
-        <p>As we talk, your action plan will appear here automatically.</p>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="top-panel-tabs" id="top-tab-pills"></div>
+        <span class="top-panel-chevron">▼</span>
       </div>
     </div>
-
-    <div class="panel-footer">
-      <button class="export-btn" id="btn-export-summary" disabled onclick="exportSummary()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
-        Download Session Summary
-      </button>
-      <button class="export-btn" id="btn-export-plan" disabled onclick="exportActionPlan()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-        </svg>
-        Download Action Plan
-      </button>
-      <button class="export-btn" id="btn-nexus-letter" onclick="requestNexusLetter()" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);color:#34d399;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        Draft Nexus Letter
-      </button>
-      <button class="export-btn" onclick="requestEvidenceFinder()" style="background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-        </svg>
-        Find My Evidence
-      </button>
-      <button class="export-btn" onclick="requestBuddyStatement()" style="background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.3);color:#a78bfa;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-        </svg>
-        Buddy Statement
-      </button>
+    <div class="top-panel-body" id="top-panel-body">
+      <div class="top-panel-tabs-row" id="top-panel-tabs-row">
+        <button class="tab active" onclick="switchTab('progress',this);event.stopPropagation()">Progress</button>
+        <button class="tab" onclick="switchTab('todo',this);event.stopPropagation()">To-Do</button>
+        <button class="tab" onclick="switchTab('flags',this);event.stopPropagation()">Flags</button>
+        <button class="tab" onclick="switchTab('forms',this);event.stopPropagation()">Forms</button>
+        <button class="tab" id="prev-findings-tab" onclick="switchTab('previous',this);event.stopPropagation()" style="display:none;">Last Session</button>
+      </div>
+      <div class="top-panel-content" id="panel-content">
+        <div style="color:var(--text-muted);font-size:12px;padding:8px 0;">As we talk, your action plan will appear here automatically.</div>
+      </div>
     </div>
   </div>
 
+  <!-- MAIN BODY: CHAT + SEARCH PANE -->
+  <div class="main-body">
+
+    <!-- CHAT AREA -->
+    <div class="chat-area">
+      <div class="messages" id="messages"></div>
+
+      <div class="input-area">
+        <!-- ACTION BUTTONS ROW -->
+        <div style="display:flex;gap:6px;padding:0 0 10px;flex-wrap:wrap;">
+          <button class="export-btn" id="btn-export-summary" disabled onclick="exportSummary()" style="flex:0;padding:5px 10px;font-size:11px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Save Session
+          </button>
+          <button class="export-btn" id="btn-export-plan" disabled onclick="exportActionPlan()" style="flex:0;padding:5px 10px;font-size:11px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            Action Plan
+          </button>
+          <button class="export-btn" onclick="requestNexusLetter()" style="flex:0;padding:5px 10px;font-size:11px;background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.3);color:#34d399;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Nexus Letter
+          </button>
+          <button class="export-btn" onclick="openSearchPane('evidence')" style="flex:0;padding:5px 10px;font-size:11px;background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.3);color:#fbbf24;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Find Evidence
+          </button>
+          <button class="export-btn" onclick="requestBuddyStatement()" style="flex:0;padding:5px 10px;font-size:11px;background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.3);color:#a78bfa;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            Buddy Statement
+          </button>
+        </div>
+
+        <div class="uploaded-files-row" id="uploaded-files"></div>
+        <div class="input-wrap">
+          <label class="upload-label" for="file-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+            Upload Files
+          </label>
+          <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt">
+          <textarea id="user-input" placeholder="Tell me what's going on with your claim..." rows="1"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">
+            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          </button>
+        </div>
+        <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+      </div>
+    </div>
+
+    <!-- SEARCH PANE -->
+    <div class="search-pane" id="search-pane">
+      <div class="search-pane-header">
+        <span class="search-pane-title" id="search-pane-title">Evidence Search</span>
+        <button class="search-pane-close" onclick="closeSearchPane()">✕</button>
+      </div>
+
+      <!-- Search type tabs -->
+      <div class="search-tabs" id="search-tabs-bar">
+        <button class="search-tab active" onclick="setSearchType('evidence',this)">Medical Evidence</button>
+        <button class="search-tab" onclick="setSearchType('legal',this)">BVA / Legal</button>
+      </div>
+
+      <!-- Results list view -->
+      <div class="search-pane-body" id="search-results-view">
+        <div class="search-empty">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <div>Search results will appear here.</div>
+          <div style="font-size:11px;opacity:0.6;">Click "Find Evidence" or ask me to search for something.</div>
+        </div>
+      </div>
+
+      <!-- Page reader view -->
+      <div class="page-reader" id="page-reader">
+        <div class="page-reader-nav">
+          <button class="page-back-btn" onclick="backToResults()">
+            ← Back
+          </button>
+          <span class="page-reader-title" id="page-reader-title"></span>
+          <button class="page-todo-btn" onclick="addPageToTodo()">+ To-Do</button>
+        </div>
+        <div class="page-reader-content" id="page-reader-content">
+          <div class="search-loading">
+            <div class="search-spinner"></div>
+            <div>Fetching page...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- END SESSION MODAL -->
@@ -1154,7 +1529,235 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     appendMessage('ai', opener);
   }
 
-  // ── Progress UI ────────────────────────────────────────
+  // ── Top Panel ──────────────────────────────────────────
+  function toggleTopPanel() {
+    const bar = document.getElementById('top-panel-bar');
+    bar.classList.toggle('expanded');
+  }
+
+  function expandTopPanel() {
+    document.getElementById('top-panel-bar').classList.add('expanded');
+  }
+
+  function updateTopPillBadges() {
+    const pills = document.getElementById('top-tab-pills');
+    if (!pills) return;
+    const counts = [
+      { label: 'Progress', val: panelItems.progress.length, color: '#34d399' },
+      { label: 'To-Do', val: panelItems.todo.length, color: '#fbbf24' },
+      { label: 'Flags', val: panelItems.flags.length, color: '#f87171' },
+      { label: 'Forms', val: (panelItems.forms||[]).length, color: '#60a5fa' },
+    ];
+    pills.innerHTML = counts.filter(c => c.val > 0).map(c =>
+      `<span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:${c.color};background:${c.color}22;border:1px solid ${c.color}44;padding:2px 7px;border-radius:10px;margin-left:4px;">${c.label} ${c.val}</span>`
+    ).join('');
+  }
+
+  // ── Search Pane ────────────────────────────────────────
+  let currentSearchType = 'evidence';
+  let currentSearchResults = [];
+  let currentPageUrl = '';
+  let currentPageTitle = '';
+
+  function setSearchType(type, btn) {
+    currentSearchType = type;
+    document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function openSearchPane(type) {
+    currentSearchType = type || 'evidence';
+    // Sync tab button
+    document.querySelectorAll('.search-tab').forEach(t => {
+      t.classList.toggle('active', t.textContent.toLowerCase().includes(currentSearchType === 'evidence' ? 'medical' : 'bva'));
+    });
+    document.getElementById('search-pane').classList.add('open');
+    // If no results yet, fire a search based on conversation context
+    if (currentSearchResults.length === 0) {
+      const context = buildSearchContext();
+      if (context) runSearch(context);
+    }
+  }
+
+  function closeSearchPane() {
+    document.getElementById('search-pane').classList.remove('open');
+  }
+
+  function buildSearchContext() {
+    // Pull last few assistant messages for context
+    const recent = conversationHistory
+      .filter(m => m.role === 'assistant')
+      .slice(-2)
+      .map(m => m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim())
+      .join(' ');
+    // Also grab any conditions/bases from progress
+    const facts = panelItems.progress.map(p => p.text).join(', ');
+    return (facts + ' ' + recent).substring(0, 300);
+  }
+
+  async function runSearch(query) {
+    document.getElementById('search-results-view').innerHTML = `
+      <div class="search-loading">
+        <div class="search-spinner"></div>
+        <div>Searching ${currentSearchType === 'evidence' ? 'medical databases' : 'BVA decisions'}...</div>
+      </div>`;
+    showResultsView();
+
+    try {
+      const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, type: currentSearchType })
+      });
+
+      if (!res.ok) throw new Error('Search failed');
+      const data = await res.json();
+      const results = data.results || [];
+      currentSearchResults = results;
+      renderSearchResults(results, query);
+    } catch (err) {
+      document.getElementById('search-results-view').innerHTML = `
+        <div class="search-empty">
+          <div>Search unavailable right now.</div>
+          <div style="font-size:11px;opacity:0.6;">${err.message}</div>
+        </div>`;
+    }
+  }
+
+  function renderSearchResults(results, query) {
+    const view = document.getElementById('search-results-view');
+    if (!results.length) {
+      view.innerHTML = `<div class="search-empty"><div>No results found.</div><div style="font-size:11px;opacity:0.6;">Try asking me to search for something more specific.</div></div>`;
+      return;
+    }
+    document.getElementById('search-pane-title').textContent = `${results.length} results`;
+    view.innerHTML = results.map((r, i) => `
+      <div class="search-result-card" data-idx="${i}">
+        <div class="src-source">${r.source || 'Source'}</div>
+        <div class="src-title">${r.title || 'Untitled'}</div>
+        <div class="src-snippet">${r.snippet || ''}</div>
+        <div class="src-actions">
+          <button class="src-btn src-btn-read" onclick="openPageReader(${i})">Read Page</button>
+          <button class="src-btn src-btn-todo" onclick="addResultToTodo(${i})">+ To-Do</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function showResultsView() {
+    document.getElementById('search-results-view').style.display = 'flex';
+    document.getElementById('search-results-view').style.flexDirection = 'column';
+    document.getElementById('page-reader').classList.remove('active');
+  }
+
+  function backToResults() {
+    showResultsView();
+  }
+
+  async function openPageReader(idx) {
+    const result = currentSearchResults[idx];
+    if (!result) return;
+
+    currentPageUrl = result.url;
+    currentPageTitle = result.title;
+
+    document.getElementById('page-reader-title').textContent = result.title;
+    document.getElementById('page-reader-content').innerHTML = `
+      <div class="search-loading">
+        <div class="search-spinner"></div>
+        <div>Fetching page content...</div>
+      </div>`;
+
+    document.getElementById('search-results-view').style.display = 'none';
+    document.getElementById('page-reader').classList.add('active');
+
+    try {
+      const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev/fetch-page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: result.url })
+      });
+
+      if (!res.ok) throw new Error('Could not fetch page');
+      const data = await res.json();
+      const text = data.text || '';
+
+      document.getElementById('page-reader-content').innerHTML =
+        `<div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;font-family:'IBM Plex Mono',monospace;">SOURCE</div>
+          <a href="${result.url}" target="_blank" style="color:var(--accent);font-size:12px;word-break:break-all;">${result.url}</a>
+        </div>
+        ${formatPageText(text)}
+        <div style="margin-top:16px;padding:10px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--text-muted);">
+          💬 Ask me a question about this page in the chat and I'll answer based on what's here.
+        </div>`;
+
+      // Inject page content into conversation so bot can answer questions about it
+      window._currentPageContent = text.substring(0, 3000);
+      window._currentPageTitle = result.title;
+
+    } catch (err) {
+      document.getElementById('page-reader-content').innerHTML = `
+        <div class="search-empty">
+          <div>Could not load page content.</div>
+          <a href="${result.url}" target="_blank" style="color:var(--accent);font-size:12px;">Open in new tab instead →</a>
+        </div>`;
+    }
+  }
+
+  function formatPageText(text) {
+    return '<p>' + text
+      .replace(/\n\n+/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      + '</p>';
+  }
+
+  function addResultToTodo(idx) {
+    const result = currentSearchResults[idx];
+    if (!result) return;
+    const todoText = `Review: ${result.title} — ${result.url}`;
+    // Deduplicate
+    if (!panelItems.todo.find(t => t.text === todoText)) {
+      panelItems.todo.push({ text: todoText, status: 'todo' });
+      renderPanel();
+      updateTopPillBadges();
+      enableExports();
+    }
+    // Visual feedback
+    const card = document.querySelector(`.search-result-card[data-idx="${idx}"] .src-btn-todo`);
+    if (card) { card.textContent = '✓ Added'; card.style.color = '#34d399'; }
+  }
+
+  function addPageToTodo() {
+    if (!currentPageUrl) return;
+    const todoText = `Review: ${currentPageTitle} — ${currentPageUrl}`;
+    if (!panelItems.todo.find(t => t.text === todoText)) {
+      panelItems.todo.push({ text: todoText, status: 'todo' });
+      renderPanel();
+      updateTopPillBadges();
+      enableExports();
+    }
+    const btn = document.getElementById('page-todo-btn') || document.querySelector('.page-todo-btn');
+    if (btn) { btn.textContent = '✓ Added'; }
+    setTimeout(() => { if (btn) btn.textContent = '+ To-Do'; }, 2000);
+  }
+
+  // Called from bot button or chat
+  function requestEvidenceFinder() {
+    openSearchPane('evidence');
+    const context = buildSearchContext();
+    if (context) runSearch(context);
+  }
+
+  // Intercept messages that mention the current page
+  function injectPageContextIfNeeded(userText) {
+    if (window._currentPageContent && document.getElementById('page-reader').classList.contains('active')) {
+      return `[The veteran is currently reading this page: "${window._currentPageTitle}". Page content:\n${window._currentPageContent}\n\nVeteran's question: ${userText}]`;
+    }
+    return userText;
+  }
+
+  // ── Update panel function (overrides old) ──────────────
   function showProgress(filename) {
     const messages = document.getElementById('messages');
     const div = document.createElement('div');
@@ -1625,7 +2228,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   async function sendToAI(userText, isSystem) {
-    conversationHistory.push({ role: 'user', content: userText });
+    const enrichedText = isSystem ? userText : injectPageContextIfNeeded(userText);
+    conversationHistory.push({ role: 'user', content: enrichedText });
 
     isThinking = true;
     document.getElementById('send-btn').disabled = true;
@@ -1779,26 +2383,15 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     if (panel.forms) {
       const prevCount = (panelItems.forms||[]).length;
       panelItems.forms = [...(panelItems.forms||[]), ...panel.forms.filter(n => !(panelItems.forms||[]).find(e => e.number === n.number))];
-      // Show persistent badge on Forms tab when new forms are added
+      // Auto-expand panel when new forms added
       if (panelItems.forms.length > prevCount) {
-        const formsTab = document.querySelector('.tab[onclick*="forms"]');
-        if (formsTab && activeTab !== 'forms') {
-          // Add badge if not already there
-          if (!formsTab.querySelector('.forms-badge')) {
-            const badge = document.createElement('span');
-            badge.className = 'forms-badge';
-            badge.textContent = panelItems.forms.length;
-            badge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:#2563eb;color:white;border-radius:50%;font-size:10px;font-weight:700;margin-left:5px;';
-            formsTab.appendChild(badge);
-          } else {
-            formsTab.querySelector('.forms-badge').textContent = panelItems.forms.length;
-          }
-        }
+        expandTopPanel();
+        switchTab('forms', document.querySelector('.tab[onclick*="forms"]'));
       }
     }
     renderPanel();
+    updateTopPillBadges();
 
-    const total = panelItems.progress.length + panelItems.todo.length + panelItems.flags.length;
     document.getElementById('panel-subtitle').textContent =
       `${panelItems.progress.length} done · ${panelItems.todo.length} to-do · ${panelItems.flags.length} flags`;
   }
@@ -1807,37 +2400,22 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const content = document.getElementById('panel-content');
     const items = panelItems[activeTab];
 
-    if (!items || items.length === 0) {
-      content.innerHTML = `<div class="empty-panel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-        </svg>
-        <p>Nothing here yet — keep talking and this will fill in.</p>
-      </div>`;
-      return;
-    }
-
     if (activeTab === 'previous') {
       if (!previousSession) {
-        content.innerHTML = `<div class="empty-panel"><p>No previous session loaded.</p></div>`;
+        content.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0;">No previous session loaded.</div>`;
         return;
       }
       const cs = previousSession.case_status || {};
       const sections = [
-        { label: 'What was completed', items: cs.completed || [], icon: '✓', color: '#34d399' },
-        { label: 'What was left to do', items: cs.todo || [], icon: '→', color: '#f59e0b' },
-        { label: 'Flags from last session', items: cs.flags || [], icon: '!', color: '#f87171' },
-        { label: 'Forms identified', items: cs.forms_needed || [], icon: '📋', color: '#60a5fa' }
+        { label: 'Completed', items: cs.completed || [], color: '#34d399' },
+        { label: 'Left to do', items: cs.todo || [], color: '#f59e0b' },
+        { label: 'Flags', items: cs.flags || [], color: '#f87171' },
+        { label: 'Forms identified', items: cs.forms_needed || [], color: '#60a5fa' }
       ];
       content.innerHTML = sections.filter(s => s.items.length > 0).map(s => `
-        <div style="margin-bottom:16px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:${s.color};text-transform:uppercase;margin-bottom:8px;font-family:'IBM Plex Mono',monospace;">${s.label}</div>
-          ${s.items.map(item => `
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:var(--bg-secondary);border-radius:6px;margin-bottom:6px;border:1px solid var(--border);">
-              <span style="color:${s.color};font-weight:700;flex-shrink:0;margin-top:1px;">${s.icon}</span>
-              <span style="font-size:13px;color:var(--text-muted);line-height:1.5;">${item}</span>
-            </div>
-          `).join('')}
+        <div style="margin-right:16px;margin-bottom:8px;">
+          <div style="font-size:10px;font-weight:700;color:${s.color};text-transform:uppercase;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;">${s.label}</div>
+          ${s.items.map(item => `<div style="font-size:12px;color:var(--text-muted);padding:3px 0;">${item}</div>`).join('')}
         </div>
       `).join('');
       return;
@@ -1845,44 +2423,45 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
     if (activeTab === 'forms') {
       const forms = panelItems.forms || [];
-      if (forms.length === 0) {
-        content.innerHTML = `<div class="empty-panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p>Forms will appear here as your case develops.</p></div>`;
+      if (!forms.length) {
+        content.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0;">Forms will appear as your case develops.</div>`;
         return;
       }
       content.innerHTML = forms.map(f => `
-        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span style="background:#1e3a5f;color:#60a5fa;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:IBM Plex Mono,monospace;">VA ${f.number}</span>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-right:8px;margin-bottom:6px;min-width:200px;max-width:260px;display:inline-block;vertical-align:top;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="background:#1e3a5f;color:#60a5fa;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:IBM Plex Mono,monospace;">VA ${f.number}</span>
           </div>
-          <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">${f.name}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">${f.reason}</div>
-          <a href="${f.url}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:#2563eb;color:#fff;font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;text-decoration:none;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Download from VA.gov
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;">${f.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:7px;">${f.reason}</div>
+          <a href="${f.url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#2563eb;color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;">
+            Open Form →
           </a>
         </div>
       `).join('');
       return;
     }
 
+    if (!items || !items.length) {
+      content.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0;">Nothing here yet — keep talking and this will fill in.</div>`;
+      return;
+    }
+
     const icons = { done: '✓', todo: '→', flagged: '!' };
-    content.innerHTML = items.map(item => `
-      <div class="check-item ${item.status === 'done' ? 'done' : item.status === 'flagged' ? 'flagged' : 'todo'}">
-        <div class="check-icon">${icons[item.status] || '·'}</div>
-        <div class="check-text">${item.text}</div>
-      </div>
-    `).join('');
+    const colors = { done: '#34d399', todo: '#fbbf24', flagged: '#f87171' };
+    content.innerHTML = items.map(item => {
+      const color = colors[item.status] || colors.todo;
+      return `<div style="display:inline-flex;align-items:flex-start;gap:6px;background:${color}11;border:1px solid ${color}33;border-radius:6px;padding:5px 10px;margin-right:6px;margin-bottom:6px;max-width:280px;">
+        <span style="color:${color};font-size:11px;flex-shrink:0;margin-top:1px;">${icons[item.status]||'·'}</span>
+        <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">${item.text}</span>
+      </div>`;
+    }).join('');
   }
 
   function switchTab(tab, btn) {
     activeTab = tab;
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
-    // Clear badge when Forms tab clicked
-    if (tab === 'forms') {
-      const badge = btn.querySelector('.forms-badge');
-      if (badge) badge.remove();
-    }
+    document.querySelectorAll('#top-panel-tabs-row .tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
     renderPanel();
   }
 
@@ -2210,10 +2789,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     exportSummary();
     exportActionPlan();
     hideEndModal();
-    // Redirect to landing page after download triggers
-    setTimeout(() => {
-      window.location.href = '/';
-    }, 800);
+    currentSearchResults = [];
+    window._currentPageContent = null;
+    closeSearchPane();
+    setTimeout(() => { window.location.href = '/'; }, 800);
   }
 
   // ── Input helpers ──────────────────────────────────────
