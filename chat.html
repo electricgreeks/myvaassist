@@ -816,7 +816,7 @@ PANEL RULES - CRITICAL:
 
 FORMS GUIDANCE: Only add forms when you know the veteran's specific situation. Order by what to file FIRST. Never add a form just because it might apply — only add it when you're confident it applies to this veteran's case. Common forms:
 - 21-4142: Always add if private medical records are missing or needed
-- 21-526EZ: New disability claim (url: https://www.va.gov/find-forms/about-form-21-526ez/)
+- 21-526EZ: New disability claim (url: https://www.va.gov/disability/file-disability-claim-form-21-526ez/start)
 - 20-0995: Supplemental claim with new evidence (url: https://www.va.gov/find-forms/about-form-20-0995/)
 - 10-182: Board of Veterans Appeals (url: https://www.va.gov/find-forms/about-form-10-182/)
 - 20-0996: Higher Level Review (url: https://www.va.gov/find-forms/about-form-20-0996/)
@@ -836,6 +836,8 @@ CONVERSATION STYLE - CRITICAL RULES:
 - DIRECT DEPOSIT: Do not ask about direct deposit during intake or form walkthrough. At the very end of the form walkthrough, simply note: "You can add your banking information when you file online at VA.gov — the VA pays monthly compensation directly to your account if your claim is approved."
 - QUESTIONS: End every message with your one question on its own line, prefixed with "→" so it visually stands out from your explanation.
 - If they upload files, state what you found in 1-2 sentences, then ask ONE question about the most important gap.
+
+INTENT TO FILE: For first-time filers, always mention Intent to File early in the conversation — ideally as soon as you know they haven't filed yet. It takes 2 minutes online and locks in their effective date — meaning if their claim is approved they get back pay to today, not to whenever they finish the full application. URL: https://www.va.gov/decision-reviews/file-an-itf/. Say: "Before we go further, there's something important — you can file an Intent to File right now in 2 minutes at VA.gov. This locks in today as your start date. If your claim is approved, you get back pay from today. It's free and it protects your money while we build your full claim."
 
 FORM WALKTHROUGH: If the veteran asks for help filling out a form or wants VSO-style guidance, shift into form walkthrough mode. Ask ONE field at a time. After collecting all answers, output a complete pre-fill summary.
 
@@ -1918,7 +1920,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
         <div style="padding:24px;">
           <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px 14px;margin-bottom:20px;font-size:12px;">
-            <strong>How to use this:</strong> This shows your answers in the same order as the VA.gov form. Keep this open and use it to fill in each section as you go. <a href="#" onclick="openVAGovWindow();return false;" style="color:#003087;">Open VA.gov form in new window →</a>
+            <strong>How to use this:</strong> This shows your answers in the same order as the VA.gov form. Keep this open and use it to fill in each section as you go. <a href="#" onclick="openVAGovWindow();return false;" style="color:#003087;">Open VA.gov Online Filing Tool →</a>
           </div>
 
           <!-- Section I: Veteran Info -->
@@ -2025,7 +2027,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const h = screen.availHeight;
     const left = screen.availWidth - w;
     const vaWin = window.open(
-      'https://www.va.gov/disability/file-disability-claim-form-21-526ez/',
+      'https://www.va.gov/disability/file-disability-claim-form-21-526ez/start',
       'vagov',
       `width=${w},height=${h},left=${left},top=0,resizable=yes,scrollbars=yes`
     );
