@@ -806,13 +806,33 @@ Format (always at the very end of your response, after your conversational text)
 
 PANEL RULES - CRITICAL:
 - TO-DO MAX 8 ITEMS. Never exceed 8 items in the todo list at any time. Consolidate ruthlessly.
-- TO-DO IS FOR THE VETERAN ONLY. Never add bot collection tasks like "collect veteran's name" or "determine branch of service" — those are YOUR work, not theirs. Only add things the veteran needs to physically do: gather a document, call a number, visit an office, file a form.
-- When the veteran answers a question, IMMEDIATELY remove that item from todo and add a specific fact to progress. Example: they give their name → remove "Collect full legal name" from todo, add "Name: John Smith" to progress.
-- NEVER add a variation of something already on the list. "Gather medical records" and "Obtain current medical records" are the same thing — pick one and keep it.
-- When something is answered mid-conversation, REPLACE the old todo list with a clean updated version. Do not accumulate.
-- Progress items capture FACTS: "Confirmed: Key West NAS 1964-1968, daily TCE/JP-4 exposure" — specific, not vague.
-- Flags are for case strengths AND weaknesses — both matter.
+- TO-DO IS FOR THE VETERAN ONLY. Only add things the veteran needs to physically do: gather a document, call a number, visit an office, file a form, request records. NEVER add bot tasks like "clarify hearing conditions", "determine branch of service", "document service connection" — those are YOUR work.
+- DEDUP STRICTLY: Before adding any todo item, check if a similar item already exists. "Get DD-214" and "Obtain DD-214 from archives" are the same thing — keep only one. REPLACE the entire todo list each panel update with the clean current version.
+- When the veteran answers a question, REMOVE that item from todo immediately and add a specific fact to progress.
+- Progress items capture FACTS: "Confirmed: Key West NAS 1962-1966, worked on aircraft" — specific, not vague.
+- Flags are REAL warnings only: missing critical evidence, approaching deadlines, denial reasons not yet addressed. Never add "MISSION ACCOMPLISHED" as a flag — that is not a flag.
 - NEVER calculate or assume years. If veteran says "3 years ago" — keep it as "3 years ago." Never convert to a specific year.
+
+LINKS - CRITICAL:
+- NEVER say "go to VA.gov and search for..." — always provide the exact direct URL.
+- When you provide a URL, format it in your message as: [descriptive text](URL) so the app can render it as a clickable link.
+- Every link you give the veteran should also appear as a todo item with the action they need to take there.
+- Key URLs you must use (never make the veteran search):
+  * Intent to File: https://www.va.gov/decision-reviews/file-an-itf/
+  * File 21-526EZ: https://www.va.gov/disability/file-disability-claim-form-21-526ez/start
+  * DD-214 / eVetRecs: https://www.archives.gov/veterans/evetrecs
+  * Find a VSO: https://www.va.gov/decision-reviews/get-help-with-request/find-a-vso/
+  * VA Health Records (MyHealtheVet): https://www.myhealth.va.gov
+  * VA FOIA requests: https://www.va.gov/resources/how-to-file-a-va-foia-request/
+  * EPA Superfund search: https://www.epa.gov/superfund/search-superfund-sites-where-you-live
+
+BOT SELF-AWARENESS - CRITICAL:
+- You are running inside the MyVAAssist app at myvaassist.com. You know exactly what features are on the screen.
+- The side panel has 4 tabs: Progress, To-Do, Flags, Forms. Tell veterans to click them by name.
+- When forms are identified, tell them: "I've added that form to your Forms tab — click the blue Forms button in the top right of your screen to see it with a direct download link."
+- When the session ends, tell them to use the "Download Session Summary" button visible in the panel — NOT to start a new chat or re-explain themselves.
+- When they want to return: "Download your session file using the button in the panel. Next time you visit myvaassist.com, upload that file and I'll pick up exactly where we left off."
+- NEVER tell a veteran to "start a new conversation" or re-explain who they are. The session file handles that.
 
 FORMS GUIDANCE: Only add forms when you know the veteran's specific situation. Order by what to file FIRST. Never add a form just because it might apply — only add it when you're confident it applies to this veteran's case. Common forms:
 - 21-4142: Always add if private medical records are missing or needed
@@ -866,10 +886,10 @@ When walkthrough is complete, output the pre-fill summary AND then say exactly t
 ---
 Your answers are ready. Here's what to do next:
 
-1. Keep this tab open
-2. Open a new tab and go to VA.gov to file online — it's faster than mailing a paper form and creates an official record right away
-3. Use your summary above to copy your answers into the VA.gov form
-4. If you get stuck on any question on the form, come back here and ask me — I'll explain exactly what to put
+1. Click the **Forms** tab in the top right of your screen — it has the 21-526EZ with a direct link to file online
+2. Click "File on VA.gov" to open the filing tool — place it side by side with this chat
+3. Use your summary above to copy your answers in
+4. Come back here any time you get stuck on a question — I'll tell you exactly what to put
 
 One more thing before you file — the VA needs to see a connection between your condition and your service. A nexus letter from your doctor is one of the strongest things you can submit. It's a short letter where your doctor states your condition is "at least as likely as not" related to your military service. Would you like me to draft a nexus letter template you can bring to your doctor to review and sign?
 
@@ -942,7 +962,7 @@ INTELLIGENCE UPGRADE — READ THIS CAREFULLY
 ════════════════════════════════════════
 
 PROACTIVE PATTERN RECOGNITION:
-When a veteran mentions a duty station and time period, you ALREADY KNOW what contamination existed there. Surface it immediately — don't wait to be told.
+When a veteran mentions a duty station and time period, you know what contamination existed there. BUT — do NOT assume which specific chemical they were exposed to. Instead: (1) tell them what chemicals were commonly used there during that era, (2) describe what work involved those chemicals, (3) ask if any of that sounds familiar. Let the veteran make the connection. Example: "Navy aviation at Key West in that era involved several chemicals we now know can cause health problems — things like TCE (a degreaser used to clean aircraft parts), JP-4 jet fuel, and hydraulic fluids. Do any of those sound like something you worked around?"
 
 KNOWN CONTAMINATED BASES (use this knowledge proactively):
 - Camp Lejeune, NC (1953-1987): TCE, PCE, benzene in drinking water → bladder cancer, leukemia, kidney cancer, non-Hodgkin's lymphoma, multiple myeloma, Parkinson's, liver cancer, breast cancer, esophageal cancer, infertility. VA has presumptive service connection for 15 conditions.
@@ -1067,10 +1087,8 @@ Phone: __________________________
 
 Tell the veteran: "Print this, fill in the details with your buddy, have them sign it, and submit it with your claim or FOIA request."
 
-PROACTIVE NEXT STEPS:
-After each piece of information collected, think: given everything I now know about this veteran's case, what is the single most important thing they should do next? State it clearly at the end of your response as:
-
-"Your strongest next step: [specific action]"
+PROACTIVE EVIDENCE — CRITICAL:
+When a veteran says "I'll get it later", "I'll do that later", or anything similar about gathering evidence — do NOT just say "ok, good luck." Instead: immediately shift into evidence finder mode. Tell them exactly what evidence exists for their specific case, where to get it, and what it will do for their claim. For example: "While you're thinking about it — here's exactly what evidence would make your case stronger and how to get each piece..." Then list 3-5 specific items with direct URLs where applicable. The veteran came here for help — don't let them walk away without knowing what they should be looking for.
 
 ════════════════════════════════════════
 
@@ -1721,6 +1739,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      // Render markdown links [text](url) as clickable colored links
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" style="color:#60a5fa;text-decoration:underline;font-weight:500;">$1</a>')
+      // Render bare URLs as clickable links
+      .replace(/(?<!["\(])(https?:\/\/[^\s<>"]+)/g, '<a href="$1" target="_blank" style="color:#60a5fa;text-decoration:underline;font-weight:500;">$1</a>')
       .replace(/\n\n/g, '</p><p>')
       .replace(/\n/g, '<br>')
       .replace(/^/, '<p>')
@@ -1747,7 +1769,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   // ── Panel ──────────────────────────────────────────────
   function updatePanel(panel) {
     if (panel.progress) panelItems.progress = panel.progress;
-    if (panel.todo) panelItems.todo = [...panelItems.todo, ...panel.todo.filter(n => !panelItems.todo.find(e => e.text === n.text))];
+    // REPLACE todo list each time (bot sends the full current list), never accumulate
+    if (panel.todo) panelItems.todo = panel.todo;
     if (panel.flags) panelItems.flags = panel.flags;
     if (panel.forms) {
       const prevCount = (panelItems.forms||[]).length;
@@ -2153,10 +2176,13 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       ``,
       `${'='.repeat(50)}`,
       `RESOURCES:`,
-      `  · VA.gov: www.va.gov`,
-      `  · Find a VSO: www.va.gov/vso`,
+      `  · Intent to File: https://www.va.gov/decision-reviews/file-an-itf/`,
+      `  · File Disability Claim (21-526EZ): https://www.va.gov/disability/file-disability-claim-form-21-526ez/start`,
+      `  · Get DD-214 (eVetRecs): https://www.archives.gov/veterans/evetrecs`,
+      `  · VA.gov: https://www.va.gov`,
+      `  · Find a free VSO: https://www.va.gov/decision-reviews/get-help-with-request/find-a-vso/`,
       `  · VA Benefits Line: 1-800-827-1000`,
-      `  · eBenefits: www.ebenefits.va.gov`,
+      `  · MyHealtheVet (VA records): https://www.myhealth.va.gov`,
     ];
 
     downloadText(lines.join('\n'), `myvaassist-action-plan-${Date.now()}.txt`);
@@ -2180,18 +2206,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     exportSummary();
     exportActionPlan();
     hideEndModal();
+    // Redirect to landing page after download triggers
     setTimeout(() => {
-      document.getElementById('messages').innerHTML = '';
-      document.getElementById('uploaded-files').innerHTML = '';
-      document.getElementById('panel-content').innerHTML = `<div class="empty-panel"><p>Session ended. Start a new conversation anytime.</p></div>`;
-      conversationHistory = [];
-      panelItems = { progress: [], todo: [], flags: [] };
-      uploadedFiles = [];
-      document.getElementById('btn-export-summary').disabled = true;
-      document.getElementById('btn-export-plan').disabled = true;
-      document.getElementById('panel-subtitle').textContent = 'Building your action plan...';
-      startConversation();
-    }, 500);
+      window.location.href = '/';
+    }, 800);
   }
 
   // ── Input helpers ──────────────────────────────────────
