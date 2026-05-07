@@ -1681,15 +1681,15 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
               </svg>
               View Filled Form
             </button>
-            <a href="https://www.va.gov/disability/file-disability-claim-form-21-526ez/" target="_blank"
-               style="display:inline-flex;align-items:center;gap:8px;background:transparent;color:#60a5fa;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;text-decoration:none;border:1px solid #1e3a5f;">
+            <button onclick="openVAGovWindow()" 
+               style="display:inline-flex;align-items:center;gap:8px;background:transparent;color:#60a5fa;font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;border:1px solid #1e3a5f;cursor:pointer;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
-              File on VA.gov
-            </a>
+              File on VA.gov — New Window
+            </button>
           </div>
-          <div style="font-size:12px;color:var(--text-muted);">Open the filled form, then file on VA.gov alongside it. Come back here if you get stuck on any question.</div>
+          <div style="font-size:12px;color:var(--text-muted);">VA.gov will open in a separate window — place it side by side with this chat. Come back here if you get stuck on any question.</div>
         `;
         // Store summary for the form viewer
         window._prefillSummary = summaryText;
@@ -1918,7 +1918,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
         <div style="padding:24px;">
           <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px 14px;margin-bottom:20px;font-size:12px;">
-            <strong>How to use this:</strong> This shows your answers in the same order as the VA.gov form. Keep this open and use it to fill in each section as you go. <a href="https://www.va.gov/disability/file-disability-claim-form-21-526ez/" target="_blank" style="color:#003087;">Open VA.gov form →</a>
+            <strong>How to use this:</strong> This shows your answers in the same order as the VA.gov form. Keep this open and use it to fill in each section as you go. <a href="#" onclick="openVAGovWindow();return false;" style="color:#003087;">Open VA.gov form in new window →</a>
           </div>
 
           <!-- Section I: Veteran Info -->
@@ -2017,6 +2017,29 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         </div>
       </div>
     `;
+  }
+
+  function openVAGovWindow() {
+    // Open VA.gov in a new window sized to half screen
+    const w = Math.floor(screen.availWidth / 2);
+    const h = screen.availHeight;
+    const left = screen.availWidth - w;
+    const vaWin = window.open(
+      'https://www.va.gov/disability/file-disability-claim-form-21-526ez/',
+      'vagov',
+      `width=${w},height=${h},left=${left},top=0,resizable=yes,scrollbars=yes`
+    );
+    // Resize current window to left half
+    if (window.moveTo && window.resizeTo) {
+      window.moveTo(0, 0);
+      window.resizeTo(w, h);
+    }
+    if (vaWin) {
+      // Show a tip message in chat
+      appendMessage('ai', 'VA.gov is now open in a separate window on the right side of your screen. Keep this chat on the left. Use your filled form summary to copy your answers into VA.gov — come back here any time you have a question about a field.');
+    } else {
+      appendMessage('ai', 'Your browser blocked the new window — please allow popups for myvaassist.com, then click the button again. Or you can manually open VA.gov and place the windows side by side.');
+    }
   }
 
   function requestEvidenceFinder() {
