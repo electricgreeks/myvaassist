@@ -729,7 +729,82 @@
     border-color: var(--accent);
   }
 
-  /* SIDE PANEL (old) - replaced, keep for export buttons */
+  /* ONBOARDING TOUR */
+  .tour-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    display: none;
+  }
+  .tour-overlay.active { display: block; }
+
+  .tour-tooltip {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 18px;
+    max-width: 280px;
+    z-index: 1001;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+
+  .tour-tooltip h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .tour-tooltip p {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  .tour-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tour-next {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .tour-skip {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .tour-step {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .tour-highlight {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+    position: relative;
+    z-index: 1002;
+  }
   .panel-footer {
     padding: 12px 18px;
     border-top: 1px solid var(--border);
@@ -1130,6 +1205,20 @@
   </div>
 </div>
 
+<!-- ONBOARDING TOUR -->
+<div class="tour-overlay" id="tour-overlay"></div>
+<div class="tour-tooltip" id="tour-tooltip" style="display:none;">
+  <h4 id="tour-title"></h4>
+  <p id="tour-body"></p>
+  <div class="tour-actions">
+    <span class="tour-step" id="tour-step"></span>
+    <div style="display:flex;gap:8px;">
+      <button class="tour-skip" onclick="endTour()">Skip</button>
+      <button class="tour-next" id="tour-next-btn" onclick="nextTourStep()">Next →</button>
+    </div>
+  </div>
+</div>
+
 <!-- END SESSION MODAL -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
@@ -1185,7 +1274,7 @@ PANEL RULES - CRITICAL:
 - DEDUP STRICTLY: Before adding any todo item, check if a similar item already exists. "Get DD-214" and "Obtain DD-214 from archives" are the same thing — keep only one. REPLACE the entire todo list each panel update with the clean current version.
 - When the veteran answers a question, REMOVE that item from todo immediately and add a specific fact to progress.
 - Progress items capture FACTS: "Confirmed: Key West NAS 1962-1966, worked on aircraft" — specific, not vague.
-- Flags are REAL warnings only: missing critical evidence, approaching deadlines, denial reasons not yet addressed. Never add "MISSION ACCOMPLISHED" as a flag — that is not a flag.
+- Flags are REAL unresolved warnings only: missing critical evidence, approaching deadlines, denial reasons not yet addressed, nexus letter not yet signed, DD-214 not confirmed, key evidence gap. NEVER add positive status updates as flags ("Nexus letter ready", "Ready to file", "Mission Accomplished") — those are not flags. A flag means something still needs to be fixed or is at risk.
 - NEVER calculate or assume years. If veteran says "3 years ago" — keep it as "3 years ago." Never convert to a specific year.
 
 LINKS - CRITICAL:
@@ -1322,7 +1411,7 @@ Signature: _______________________
 Date: ___________________________
 ---
 
-Tell them: "Print this, bring it to your doctor. Ask them to review it, adjust anything that's not accurate, sign it, and put it on their letterhead. Then submit it with your claim."
+Tell them: "Your nexus letter template is ready. A **Download Nexus Letter** button has appeared below — click it to save the letter as a file. Bring it to your doctor, ask them to review it, fill in their details, sign it, and put it on their letterhead. Then submit it with your VA claim."
 
 A nexus letter is one of the most powerful pieces of evidence you can submit.
 
@@ -1342,6 +1431,16 @@ INTELLIGENCE UPGRADE — READ THIS CAREFULLY
 
 PROACTIVE PATTERN RECOGNITION:
 When a veteran mentions a duty station and time period, you know what contamination existed there. BUT — do NOT assume which specific chemical they were exposed to. Instead: (1) tell them what chemicals were commonly used there during that era, (2) describe what work involved those chemicals, (3) ask if any of that sounds familiar. Let the veteran make the connection. Example: "Navy aviation at Key West in that era involved several chemicals we now know can cause health problems — things like TCE (a degreaser used to clean aircraft parts), JP-4 jet fuel, and hydraulic fluids. Do any of those sound like something you worked around?"
+
+CRITICAL — INJURY TYPE DETERMINES APPROACH:
+- If a veteran mentions a TRAUMATIC injury (lost limb, accident, combat wound, surgery from injury) → focus on that first. Ask how it happened, when, whether it was treated in service. Only introduce chemical exposure angle AFTER the traumatic injury is fully understood, and only if the base/era makes it relevant. Never lead with chemicals when the injury is clearly physical trauma.
+- If a veteran mentions a MEDICAL condition (heart disease, cancer, hearing loss, neurological, digestive) with no clear traumatic cause → then proactively surface the chemical/exposure angle based on their duty station.
+
+EXISTING COMPENSATION — ALWAYS ASK FIRST:
+- If a veteran mentions a SIGNIFICANT injury (lost limb, amputation, major surgery, severe condition) → before anything else, ask: "Are you currently receiving any VA disability compensation for this?" They may already have a rating and just need to add a new condition or request an increase. This changes the entire approach — never assume they are starting from zero.
+
+EVIDENCE — NEVER SAY "YOU DON'T NEED EVIDENCE":
+- Never tell a veteran they don't need evidence. Always say something like: "The VA will request your service records, but there are things you can do to strengthen your claim. Would you like me to show you what evidence exists for your specific case and how to get it?"
 
 KNOWN CONTAMINATED BASES (use this knowledge proactively — cite these as facts, not as things the veteran needs to look up):
 - Camp Lejeune, NC (1953-1987): TCE, PCE, benzene in drinking water — EPA Superfund site, contamination federally documented → bladder cancer, leukemia, kidney cancer, non-Hodgkin's lymphoma, multiple myeloma, Parkinson's, liver cancer, breast cancer, esophageal cancer, infertility. VA has presumptive service connection for 15 conditions.
@@ -1464,7 +1563,7 @@ Address: _________________________
 Phone: __________________________
 ---
 
-Tell the veteran: "Print this, fill in the details with your buddy, have them sign it, and submit it with your claim or FOIA request."
+Tell the veteran: "A **Download Buddy Statement** button will appear below — save it and share it with your fellow service member. Ask them to fill in the details, sign it, and return it to you to submit with your claim."
 
 PROACTIVE EVIDENCE — CRITICAL:
 When a veteran says "I'll get it later", "I'll do that later", or anything similar about gathering evidence — do NOT just say "ok, good luck." Instead: immediately shift into evidence finder mode. Tell them exactly what evidence exists for their specific case, where to get it, and what it will do for their claim. For example: "While you're thinking about it — here's exactly what evidence would make your case stronger and how to get each piece..." Then list 3-5 specific items with direct URLs where applicable. The veteran came here for help — don't let them walk away without knowing what they should be looking for.
@@ -1527,6 +1626,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
     }
     appendMessage('ai', opener);
+    // Start onboarding tour for first-time visitors
+    setTimeout(startTour, 1500);
   }
 
   // ── Top Panel ──────────────────────────────────────────
@@ -1637,7 +1738,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         <div class="src-title">${r.title || 'Untitled'}</div>
         <div class="src-snippet">${r.snippet || ''}</div>
         <div class="src-actions">
-          <button class="src-btn src-btn-read" onclick="openPageReader(${i})">Read Page</button>
+          <button class="src-btn src-btn-read" onclick="window.open('${r.url}','_blank')">Read Page ↗</button>
           <button class="src-btn src-btn-todo" onclick="addResultToTodo(${i})">+ To-Do</button>
         </div>
       </div>
@@ -1715,10 +1816,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   function addResultToTodo(idx) {
     const result = currentSearchResults[idx];
     if (!result) return;
-    const todoText = `Review: ${result.title} — ${result.url}`;
+    const todoText = `Review: ${result.title}`;
     // Deduplicate
     if (!panelItems.todo.find(t => t.text === todoText)) {
-      panelItems.todo.push({ text: todoText, status: 'todo' });
+      panelItems.todo.push({ text: todoText, status: 'todo', url: result.url });
       renderPanel();
       updateTopPillBadges();
       enableExports();
@@ -2290,6 +2391,22 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function appendMessage(role, text) {
+    // Detect nexus letter and inject download button
+    if (role === 'ai' && text.includes('Evidence Intake Center') && text.includes('at least as likely as not')) {
+      setTimeout(() => {
+        const msgs = document.getElementById('messages');
+        const btn = document.createElement('div');
+        btn.style.cssText = 'margin:4px 0 12px 48px;';
+        btn.innerHTML = `
+          <button onclick="downloadNexusLetter()" style="display:inline-flex;align-items:center;gap:8px;background:rgba(52,211,153,0.15);color:#34d399;font-size:13px;font-weight:600;padding:9px 16px;border-radius:8px;border:1px solid rgba(52,211,153,0.3);cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="8 15 12 19 16 15"/></svg>
+            Download Nexus Letter
+          </button>`;
+        msgs.appendChild(btn);
+        msgs.scrollTop = msgs.scrollHeight;
+      }, 400);
+    }
+
     // Detect pre-fill summary and inject a "File on VA.gov" button after it
     if (role === 'ai' && text.includes('===21-526EZ PRE-FILL SUMMARY===')) {
       setTimeout(() => {
@@ -2451,9 +2568,12 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const colors = { done: '#34d399', todo: '#fbbf24', flagged: '#f87171' };
     content.innerHTML = items.map(item => {
       const color = colors[item.status] || colors.todo;
+      const linkHtml = item.url
+        ? `<a href="${item.url}" target="_blank" style="color:#60a5fa;font-size:10px;display:block;margin-top:3px;text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.url}</a>`
+        : '';
       return `<div style="display:inline-flex;align-items:flex-start;gap:6px;background:${color}11;border:1px solid ${color}33;border-radius:6px;padding:5px 10px;margin-right:6px;margin-bottom:6px;max-width:280px;">
         <span style="color:${color};font-size:11px;flex-shrink:0;margin-top:1px;">${icons[item.status]||'·'}</span>
-        <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">${item.text}</span>
+        <span style="font-size:12px;color:var(--text-dim);line-height:1.4;">${item.text}${linkHtml}</span>
       </div>`;
     }).join('');
   }
@@ -2681,6 +2801,15 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   function exportSummary() {
     const date = new Date().toLocaleDateString();
 
+    // Filter out internal system messages from transcript
+    const cleanHistory = conversationHistory.filter(m => {
+      const c = m.content || '';
+      return !(c.startsWith('[SYSTEM NOTE') || c.startsWith('[Understood') || c.startsWith('[SYSTEM:'));
+    });
+
+    // Extract nexus letter if one was generated this session
+    const nexusLetter = extractNexusLetter();
+
     // Human-readable summary
     const lines = [
       `MYVAASSIST SESSION SUMMARY`,
@@ -2689,7 +2818,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       ``,
       `CONVERSATION TRANSCRIPT`,
       ``,
-      ...conversationHistory.map(m =>
+      ...cleanHistory.map(m =>
         `[${m.role.toUpperCase()}]\n${m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim()}\n`
       ),
       ``,
@@ -2703,20 +2832,37 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       ...panelItems.todo.map(i => `  → ${i.text}`),
       ``,
       `FLAGS:`,
-      ...panelItems.flags.map(i => `  ! ${i.text}`),
+      ...(panelItems.flags.length ? panelItems.flags.map(i => `  ! ${i.text}`) : ['  (none)']),
       ``,
       `FORMS NEEDED:`,
-      ...(panelItems.forms||[]).map(f => `  VA ${f.number} — ${f.name}\n    Why: ${f.reason}\n    Download: ${f.url}`),
+      ...(panelItems.forms||[]).map(f => `  VA ${f.number} — ${f.name}\n    Why: ${f.reason}\n    Link: ${f.url}`),
+    ];
+
+    // Append nexus letter as separate section if found
+    if (nexusLetter) {
+      lines.push(
+        ``,
+        `${'='.repeat(50)}`,
+        `NEXUS LETTER TEMPLATE`,
+        `(Bring this to your doctor to review, sign, and put on their letterhead)`,
+        ``,
+        nexusLetter,
+        ``
+      );
+    }
+
+    lines.push(
       ``,
       `${'='.repeat(50)}`,
       `HOW TO RESUME NEXT SESSION:`,
-      `Upload this file at myvaassist.com and the assistant will pick up where you left off.`,
+      `Upload the resume JSON file at myvaassist.com and the assistant will pick up where you left off.`,
       ``,
       `NOTE: This summary is for your personal use. Consider working with a free VSO for representation.`
-    ];
+    );
+
     downloadText(lines.join('\n'), `myvaassist-summary-${Date.now()}.txt`);
 
-    // Machine-readable session file Claude can parse next visit
+    // Machine-readable session file
     const sessionData = {
       version: '1.0',
       generated: new Date().toISOString(),
@@ -2727,18 +2873,33 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         flags: panelItems.flags.map(i => i.text),
         forms_needed: (panelItems.forms||[]).map(f => `VA ${f.number} — ${f.name}`)
       },
-      conversation_summary: conversationHistory
+      nexus_letter: nexusLetter || null,
+      conversation_summary: cleanHistory
         .filter(m => m.role === 'assistant')
         .slice(-3)
         .map(m => m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim())
         .join(' | ')
-        .substring(0, 2000),
-      full_transcript: conversationHistory.map(m => ({
+        .substring(0, 3000),
+      full_transcript: cleanHistory.map(m => ({
         role: m.role,
-        content: m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim().substring(0, 500)
+        // Full content, no truncation — nexus letter must survive
+        content: m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim()
       }))
     };
     downloadText(JSON.stringify(sessionData, null, 2), `myvaassist-resume-${Date.now()}.json`);
+  }
+
+  function extractNexusLetter() {
+    // Scan conversation history for a nexus letter block (between --- markers)
+    for (let i = conversationHistory.length - 1; i >= 0; i--) {
+      const m = conversationHistory[i];
+      if (m.role !== 'assistant') continue;
+      const clean = m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim();
+      // Look for letter block between --- markers containing VA Evidence Intake Center
+      const match = clean.match(/---\s*\n([\s\S]*?Evidence Intake Center[\s\S]*?Date:[\s\S]*?)\n---/);
+      if (match) return match[1].trim();
+    }
+    return null;
   }
 
   function exportActionPlan() {
@@ -2771,6 +2932,34 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     downloadText(lines.join('\n'), `myvaassist-action-plan-${Date.now()}.txt`);
   }
 
+  function downloadNexusLetter() {
+    const letter = extractNexusLetter();
+    if (!letter) {
+      alert('Nexus letter not found. Try downloading your session summary instead.');
+      return;
+    }
+    const lines = [
+      `NEXUS LETTER TEMPLATE`,
+      `Generated by MyVAAssist — ${new Date().toLocaleDateString()}`,
+      `${'='.repeat(50)}`,
+      ``,
+      `INSTRUCTIONS FOR YOUR DOCTOR:`,
+      `Review this letter, fill in the bracketed sections with your information,`,
+      `sign it, and put it on your practice letterhead. Then give it to the veteran`,
+      `to submit with their VA disability claim.`,
+      ``,
+      `${'='.repeat(50)}`,
+      ``,
+      letter,
+      ``,
+      `${'='.repeat(50)}`,
+      ``,
+      `Submit this letter to: Department of Veterans Affairs, Evidence Intake Center`,
+      `Or upload it at: va.gov when filing your claim`
+    ];
+    downloadText(lines.join('\n'), `nexus-letter-${Date.now()}.txt`);
+  }
+
   function downloadText(text, filename) {
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -2793,6 +2982,116 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     window._currentPageContent = null;
     closeSearchPane();
     setTimeout(() => { window.location.href = '/'; }, 800);
+  }
+
+  // ── Onboarding Tour ────────────────────────────────────
+  const TOUR_STEPS = [
+    {
+      title: 'Your Case Progress',
+      body: 'This bar tracks everything about your claim. Click the colored pills — Progress, To-Do, Flags, Forms — to see your action plan drop down.',
+      target: '#top-panel-bar',
+      position: 'bottom'
+    },
+    {
+      title: 'Save Session',
+      body: 'Click this to save your conversation. You\'ll get two files — upload the JSON file next visit and we\'ll pick up exactly where you left off.',
+      target: '#btn-export-summary',
+      position: 'top'
+    },
+    {
+      title: 'Action Plan',
+      body: 'Downloads a clean to-do list with all your next steps, forms, and links — ready to print or share.',
+      target: '#btn-export-plan',
+      position: 'top'
+    },
+    {
+      title: 'Nexus Letter',
+      body: 'Once I have your details, I\'ll draft a medical opinion letter for your doctor to sign — one of the most powerful things you can submit with your claim.',
+      target: 'button[onclick="requestNexusLetter()"]',
+      position: 'top'
+    },
+    {
+      title: 'Find Evidence',
+      body: 'Opens a research panel with real medical studies and BVA legal decisions relevant to your specific claim. Results come from PubMed, NIH, and VA records.',
+      target: 'button[onclick*="openSearchPane"]',
+      position: 'top'
+    },
+    {
+      title: 'Buddy Statement',
+      body: 'If a fellow service member can vouch for your exposure or injury, I\'ll draft a statement template for them to sign — adds real weight to your claim.',
+      target: 'button[onclick="requestBuddyStatement()"]',
+      position: 'top'
+    }
+  ];
+
+  let tourStep = 0;
+  let tourHighlighted = null;
+
+  function startTour() {
+    if (localStorage.getItem('mva_tour_done')) return;
+    tourStep = 0;
+    document.getElementById('tour-overlay').classList.add('active');
+    showTourStep();
+  }
+
+  function showTourStep() {
+    const step = TOUR_STEPS[tourStep];
+    if (!step) { endTour(); return; }
+
+    // Remove previous highlight
+    if (tourHighlighted) tourHighlighted.classList.remove('tour-highlight');
+
+    const target = document.querySelector(step.target);
+    const tooltip = document.getElementById('tour-tooltip');
+
+    document.getElementById('tour-title').textContent = step.title;
+    document.getElementById('tour-body').textContent = step.body;
+    document.getElementById('tour-step').textContent = `${tourStep + 1} of ${TOUR_STEPS.length}`;
+    document.getElementById('tour-next-btn').textContent = tourStep === TOUR_STEPS.length - 1 ? 'Done ✓' : 'Next →';
+
+    tooltip.style.display = 'block';
+
+    if (target) {
+      target.classList.add('tour-highlight');
+      tourHighlighted = target;
+
+      const rect = target.getBoundingClientRect();
+      const tipW = 280;
+      const tipH = 160;
+
+      let top, left;
+      if (step.position === 'bottom') {
+        top = rect.bottom + 12;
+        left = Math.min(rect.left, window.innerWidth - tipW - 16);
+      } else {
+        top = rect.top - tipH - 12;
+        left = Math.min(rect.left, window.innerWidth - tipW - 16);
+      }
+
+      top = Math.max(8, top);
+      left = Math.max(8, left);
+
+      tooltip.style.top = top + 'px';
+      tooltip.style.left = left + 'px';
+    } else {
+      // Center if target not found
+      tooltip.style.top = '50%';
+      tooltip.style.left = '50%';
+      tooltip.style.transform = 'translate(-50%,-50%)';
+    }
+  }
+
+  function nextTourStep() {
+    tourStep++;
+    if (tourStep >= TOUR_STEPS.length) { endTour(); return; }
+    showTourStep();
+  }
+
+  function endTour() {
+    if (tourHighlighted) tourHighlighted.classList.remove('tour-highlight');
+    document.getElementById('tour-overlay').classList.remove('active');
+    document.getElementById('tour-tooltip').style.display = 'none';
+    localStorage.setItem('mva_tour_done', '1');
   }
 
   // ── Input helpers ──────────────────────────────────────
