@@ -1249,7 +1249,7 @@ Your personality: You speak plainly, never in government jargon. You are patient
 CRITICAL BEHAVIOR - THE SIDE PANEL:
 Throughout the conversation, you MUST continuously update the user's action plan by including a special JSON block at the END of every response. This block is parsed by the app and populates the side panel. The veteran never sees this block directly.
 
-Format (always at the very end of your response, after your conversational text):
+Format (always at the very end of your response, after your conversational text). Use EXACTLY these delimiters with no spaces or variations:
 <<<PANEL_UPDATE>>>
 {
   "progress": [
@@ -1267,6 +1267,8 @@ Format (always at the very end of your response, after your conversational text)
   ]
 }
 <<<END_PANEL>>>
+
+CRITICAL: The opening delimiter must be exactly <<<PANEL_UPDATE>>> and the closing delimiter must be exactly <<<END_PANEL>>> — no arrows, no spaces, no dashes, no variations. Any deviation will break the app.
 
 PANEL RULES - CRITICAL:
 - TO-DO MAX 8 ITEMS. Never exceed 8 items in the todo list at any time. Consolidate ruthlessly.
@@ -2437,15 +2439,23 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function parseResponse(raw) {
-    const panelStart = raw.indexOf('<<<PANEL_UPDATE>>>');
-    const panelEnd = raw.indexOf('<<<END_PANEL>>>');
+    // Robust match — handles spacing/arrow variations like "← PANEL_UPDATE >>>" or "<<>>"
+    const startMatch = raw.match(/<{2,3}[\s\-←]*PANEL_UPDATE[\s\-]*>{2,3}/i);
+    const endMatch = raw.match(/<{2,3}[\s\-←]*END_PANEL[\s\-]*>{2,3}/i);
 
-    if (panelStart === -1 || panelEnd === -1) {
-      return { message: raw.trim(), panel: null };
+    if (!startMatch || !endMatch) {
+      // Fallback: strip any leaked JSON block that looks like a panel update
+      const cleaned = raw
+        .replace(/<{2,3}[\s\S]*?>{2,3}/g, '')
+        .replace(/\{\s*\n?\s*"progress"\s*:[\s\S]*?\}\s*\n?/g, '')
+        .trim();
+      return { message: cleaned, panel: null };
     }
 
+    const panelStart = raw.indexOf(startMatch[0]);
+    const panelEnd = raw.indexOf(endMatch[0]);
     const message = raw.substring(0, panelStart).trim();
-    const jsonStr = raw.substring(panelStart + 18, panelEnd).trim();
+    const jsonStr = raw.substring(panelStart + startMatch[0].length, panelEnd).trim();
 
     let panel = null;
     try { panel = JSON.parse(jsonStr); } catch(e) { console.warn('Panel parse error', e); }
@@ -2515,7 +2525,12 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.innerHTML = formatText(text);
+    // Safety strip — remove any panel JSON that leaked through parser
+    const cleanText = text
+      .replace(/<{2,3}[\s\S]*?>{2,3}/g, '')
+      .replace(/\{\s*\n?\s*"progress"\s*:[\s\S]*?\n\}/g, '')
+      .trim();
+    bubble.innerHTML = formatText(cleanText);
 
     div.appendChild(avatar);
     div.appendChild(bubble);
