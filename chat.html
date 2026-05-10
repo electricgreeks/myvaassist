@@ -1268,6 +1268,7 @@ PANEL RULES - CRITICAL:
 - When the veteran answers a question, REMOVE that item from todo immediately and add a specific fact to progress.
 - Progress items capture FACTS: "Confirmed: Key West NAS 1962-1966, worked on aircraft" — specific, not vague.
 - Flags are REAL unresolved warnings only: missing critical evidence, approaching deadlines, denial reasons not yet addressed, nexus letter not yet signed, DD-214 not confirmed, key evidence gap. NEVER add positive status updates as flags ("Nexus letter ready", "Ready to file", "Mission Accomplished") — those are not flags. A flag means something still needs to be fixed or is at risk.
+- For C&P exam mode specifically: real flags include "Exam date is within 2 weeks — prioritize prep now", "No stressor letter on file for PTSD claim", "No buddy statement to support stressor", "Medical records may not be in VA system yet", "Exam date not yet confirmed by VA". Do NOT flag "C&P exam results determine rating" — that is not a warning, it's just how the VA works.
 - NEVER calculate or assume years. If veteran says "3 years ago" — keep it as "3 years ago." Never convert to a specific year.
 
 LINKS - CRITICAL:
@@ -1892,7 +1893,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       opener = `Thank you for your service. I can help you draft a nexus letter — that's the doctor's opinion letter that connects your condition to your military service.\n\nTo write a strong one, I'll need a few things from you. Let's start simple.\n\n→ What condition are you trying to connect to your service?`;
     } else if (mode === 'cp_exam') {
       opener = `Thank you for your service. A C&P exam — Compensation & Pension exam — is one of the most important steps in your VA claim. How you perform in that room directly affects your rating.\n\nI'm going to help you walk in prepared.\n\nFirst things first — the VA examiner will be filling out a specific form called a DBQ (Disability Benefits Questionnaire) for your condition. Reading that form before your exam tells you exactly what they're measuring and what language matters. I'll pull it for you once I know your condition.\n\n→ What condition is your C&P exam for?`;
-      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has an upcoming C&P exam. They are NOT filing for the first time and are NOT appealing a denial right now — they need C&P exam preparation. Your job is to: (1) identify the condition the exam covers, (2) pull the exact DBQ criteria for that condition and explain what the examiner measures, (3) tell them what symptoms to describe and how to describe them — worst days not average days, (4) give them the full prep checklist, (5) offer to walk through a mock exam. Focus entirely on exam prep. Do NOT pivot to filing or appeals unless they ask.]' });
+      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has an upcoming C&P exam. They are NOT filing for the first time and are NOT appealing a denial right now — they need C&P exam preparation. Your job is to: (1) identify the condition the exam covers, (2) ask when the exam is scheduled so you can flag urgency appropriately, (3) pull the exact DBQ criteria for that condition and explain what the examiner measures, (4) tell them what symptoms to describe and how to describe them — worst days not average days, (5) give them the full prep checklist, (6) offer to walk through a mock exam. Focus entirely on exam prep. Do NOT pivot to filing or appeals unless they ask. If the exam is within 2 weeks, flag it as urgent in the Flags panel.]' });
       conversationHistory.push({ role: 'assistant', content: '[Understood. C&P exam prep mode. I will focus on preparing this veteran for their upcoming exam — DBQ criteria, symptom description strategy, and exam day checklist.]' });
     } else {
       opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
@@ -3258,10 +3259,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       nexus_letter: nexusLetter || null,
       conversation_summary: cleanHistory
         .filter(m => m.role === 'assistant')
-        .slice(-3)
+        .slice(-5)
         .map(m => m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim())
         .join(' | ')
-        .substring(0, 3000),
+        .substring(0, 8000),
       full_transcript: cleanHistory.map(m => ({
         role: m.role,
         // Full content, no truncation — nexus letter must survive
