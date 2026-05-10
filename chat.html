@@ -2325,12 +2325,12 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         'anthropic-beta': 'pdfs-2024-09-25'  // Send as HTTP header so streaming Worker forwards it
       },
       body: JSON.stringify({
-        system: 'You are a document reader. Extract all text from this PDF exactly as written. Preserve names, dates, condition names, ratings, decisions, denial reasons. Return only the extracted text.',
+        system: 'You are a text extraction assistant. Read the document and return all text exactly as it appears on the page.',
         messages: [{
           role: 'user',
           content: [
             { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } },
-            { type: 'text', text: 'Extract ALL text from this VA document exactly as written. Preserve all names, dates, claim numbers, conditions, ratings, decision language, and denial reasons. Skip only repetitive boilerplate regulation lists.' }
+            { type: 'text', text: 'Please read all the text in this document and return it exactly as written.' }
           ]
         }],
         max_tokens: 8000
@@ -2470,7 +2470,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       const blocks = [
         {
           type: 'text',
-          text: `These are pages ${start + 1} to ${batchEnd} from a VA document. Extract ALL text exactly as written. Preserve names, dates, condition names, ratings, decisions, denial reasons. Return only the extracted text.`
+          text: `Please read all the text visible in these images and return it exactly as written, page by page.`
         },
         ...batch.map(jpeg => ({
           type: 'image',
@@ -2482,7 +2482,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system: 'You are a document reader. Extract all text from images exactly as written.',
+          system: 'You are a text extraction assistant. Read the text in the images and return it exactly as it appears.',
           messages: [{ role: 'user', content: blocks }],
           max_tokens: 4000
         })
@@ -2614,21 +2614,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
               allExtractedText += `\n\n=== ${file.name} ===\n[Could not read this PDF: ${pdfErr.message}. Try uploading specific pages as a smaller PDF.]`;
             }
           } else {
-            // Over 20MB scanned PDF — render pages as small JPEGs via canvas, then send as images
-            updateProgress('Large PDF detected — converting pages to images...', 40, file.name);
-            try {
-              const jpegs = await renderPdfPages(file);
-              if (jpegs.length > 0) {
-                updateProgress(`Reading ${jpegs.length} pages...`, 65, file.name);
-                const pdfText = await readImagesWithClaude(jpegs, file.name);
-                allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
-              } else {
-                allExtractedText += `\n\n=== ${file.name} ===\n[Could not render pages from this PDF. Try uploading key pages as a separate smaller file.]`;
-              }
-            } catch(renderErr) {
-              console.warn('Canvas render failed:', renderErr.message);
-              allExtractedText += `\n\n=== ${file.name} ===\n[Could not process this PDF: ${renderErr.message}. Try uploading key pages as a separate smaller file.]`;
-            }
+            // Over 20MB — too large, instruct veteran
+            allExtractedText += `\n\n=== ${file.name} ===\n[FILE TOO LARGE: This PDF is ${fileSizeMB.toFixed(0)}MB. Please upload the specific pages you need — denial letter, rating decision, or key evidence — as a separate smaller PDF under 20MB.]`;
           }
         }
       } catch(err) {
