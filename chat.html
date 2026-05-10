@@ -2320,7 +2320,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
     const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-beta': 'pdfs-2024-09-25'  // Send as HTTP header so streaming Worker forwards it
+      },
       body: JSON.stringify({
         system: 'You are a document reader. Extract all text from this PDF exactly as written. Preserve names, dates, condition names, ratings, decisions, denial reasons. Return only the extracted text.',
         messages: [{
@@ -2330,8 +2333,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
             { type: 'text', text: 'Extract ALL text from this VA document exactly as written. Preserve all names, dates, claim numbers, conditions, ratings, decision language, and denial reasons. Skip only repetitive boilerplate regulation lists.' }
           ]
         }],
-        max_tokens: 8000,
-        betas: ['pdfs-2024-09-25']
+        max_tokens: 8000
       })
     });
     if (!res.ok) {
@@ -2596,29 +2598,24 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
           }
 
           const wordCount = text.trim().split(/\s+/).length;
+          const fileSizeMB = file.size / (1024 * 1024);
 
           if (wordCount > 50) {
             updateProgress('Text extracted — analyzing...', 85, file.name);
             allExtractedText += `\n\n=== ${file.name} ===\n${text.substring(0, 20000)}`;
-          } else {
-            // Scanned PDF — use Anthropic's native PDF beta instead of image batches
-            // Image batches trigger content filtering; native PDF processing does not
+          } else if (fileSizeMB <= 20) {
+            // Scanned PDF under 20MB — native PDF beta (no image conversion, no content filter)
             updateProgress('Sending PDF for analysis...', 60, file.name);
             try {
               const pdfText = await readPdfWithClaude(file, file.name);
               allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
             } catch(pdfErr) {
-              console.warn('Native PDF read failed, trying image fallback:', pdfErr);
-              // Last resort fallback — may hit content filter on some docs
-              updateProgress('Converting PDF pages to images...', 50, file.name);
-              const jpegs = await renderPdfPages(file);
-              let pdfText = '';
-              if (jpegs.length > 0) {
-                updateProgress(`Reading ${jpegs.length} PDF pages...`, 65, file.name);
-                pdfText = await readImagesWithClaude(jpegs, file.name);
-              }
-              allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
+              console.warn('Native PDF read failed:', pdfErr.message);
+              allExtractedText += `\n\n=== ${file.name} ===\n[Could not read this PDF: ${pdfErr.message}. Try uploading specific pages as a smaller PDF.]`;
             }
+          } else {
+            // Over 20MB — too large, instruct veteran
+            allExtractedText += `\n\n=== ${file.name} ===\n[FILE TOO LARGE: This PDF is ${fileSizeMB.toFixed(0)}MB. Please upload the specific pages you need — denial letter, rating decision, or key evidence — as a separate smaller PDF under 20MB.]`;
           }
         }
       } catch(err) {
