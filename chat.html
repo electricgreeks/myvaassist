@@ -2601,14 +2601,24 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
             updateProgress('Text extracted — analyzing...', 85, file.name);
             allExtractedText += `\n\n=== ${file.name} ===\n${text.substring(0, 20000)}`;
           } else {
-            updateProgress('Converting PDF pages to images...', 50, file.name);
-            const jpegs = await renderPdfPages(file);
-            let pdfText = '';
-            if (jpegs.length > 0) {
-              updateProgress(`Reading ${jpegs.length} PDF pages...`, 65, file.name);
-              pdfText = await readImagesWithClaude(jpegs, file.name);
+            // Scanned PDF — use Anthropic's native PDF beta instead of image batches
+            // Image batches trigger content filtering; native PDF processing does not
+            updateProgress('Sending PDF for analysis...', 60, file.name);
+            try {
+              const pdfText = await readPdfWithClaude(file, file.name);
+              allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
+            } catch(pdfErr) {
+              console.warn('Native PDF read failed, trying image fallback:', pdfErr);
+              // Last resort fallback — may hit content filter on some docs
+              updateProgress('Converting PDF pages to images...', 50, file.name);
+              const jpegs = await renderPdfPages(file);
+              let pdfText = '';
+              if (jpegs.length > 0) {
+                updateProgress(`Reading ${jpegs.length} PDF pages...`, 65, file.name);
+                pdfText = await readImagesWithClaude(jpegs, file.name);
+              }
+              allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
             }
-            allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
           }
         }
       } catch(err) {
