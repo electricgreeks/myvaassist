@@ -2614,8 +2614,21 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
               allExtractedText += `\n\n=== ${file.name} ===\n[Could not read this PDF: ${pdfErr.message}. Try uploading specific pages as a smaller PDF.]`;
             }
           } else {
-            // Over 20MB — too large, instruct veteran
-            allExtractedText += `\n\n=== ${file.name} ===\n[FILE TOO LARGE: This PDF is ${fileSizeMB.toFixed(0)}MB. Please upload the specific pages you need — denial letter, rating decision, or key evidence — as a separate smaller PDF under 20MB.]`;
+            // Over 20MB scanned PDF — render pages as small JPEGs via canvas, then send as images
+            updateProgress('Large PDF detected — converting pages to images...', 40, file.name);
+            try {
+              const jpegs = await renderPdfPages(file);
+              if (jpegs.length > 0) {
+                updateProgress(`Reading ${jpegs.length} pages...`, 65, file.name);
+                const pdfText = await readImagesWithClaude(jpegs, file.name);
+                allExtractedText += `\n\n=== ${file.name} ===\n${pdfText}`;
+              } else {
+                allExtractedText += `\n\n=== ${file.name} ===\n[Could not render pages from this PDF. Try uploading key pages as a separate smaller file.]`;
+              }
+            } catch(renderErr) {
+              console.warn('Canvas render failed:', renderErr.message);
+              allExtractedText += `\n\n=== ${file.name} ===\n[Could not process this PDF: ${renderErr.message}. Try uploading key pages as a separate smaller file.]`;
+            }
           }
         }
       } catch(err) {
