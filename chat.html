@@ -2287,9 +2287,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     return fullText;
   }
 
-  // ── Resize a base64 JPEG to fit within Anthropic limits ─
-  // Single image: 5MB max. Multi-image: 2000px max per dimension.
-  // We target 1800px max on any side to stay safely under both limits.
+  // ── Resize a base64 JPEG to max width ─────────────────
   async function resizeJpeg(base64, maxDim = 1800) {
     return new Promise(resolve => {
       const img = new Image();
@@ -2300,7 +2298,6 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         canvas.height = Math.round(img.height * scale);
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        // Quality 0.55 balances readability vs size — keeps most pages under 1MB
         resolve(canvas.toDataURL('image/jpeg', 0.55).split(',')[1]);
       };
       img.onerror = () => resolve(base64);
@@ -2373,7 +2370,6 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       updateProgress(`OCR page ${i} of ${totalPages}...`, pct, file.name);
       const page = await pdf.getPage(i);
       const naturalViewport = page.getViewport({ scale: 1.0 });
-      // Cap at 1800px max dimension to stay under Anthropic's 2000px multi-image limit
       const scaleFactor = Math.min(1800 / naturalViewport.width, 1800 / naturalViewport.height, 1.5);
       const viewport = page.getViewport({ scale: scaleFactor });
       const canvas = document.createElement('canvas');
@@ -2436,7 +2432,6 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       updateProgress(`Rendering page ${i} of ${totalPages}...`, pct, file.name);
       const page = await pdf.getPage(i);
       const naturalViewport = page.getViewport({ scale: 1.0 });
-      // Cap both dimensions at 1800px — Anthropic's multi-image limit is 2000px per side
       const scale = Math.min(1800 / naturalViewport.width, 1800 / naturalViewport.height, 1.0);
       const viewport = page.getViewport({ scale });
       const canvas = document.createElement('canvas');
@@ -2456,12 +2451,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const BATCH = 2;
     const totalImages = jpegs.length;
 
-    // Pre-resize ALL images to guarantee they stay under Anthropic's limits
-    // Multi-image requests: max 2000px per dimension, 5MB per image
-    updateProgress(`Optimizing ${totalImages} pages for upload...`, 55, filename);
+    // Pre-resize ALL images — caps both dimensions at 1800px to stay under Anthropic limits
+    updateProgress(`Optimizing ${totalImages} pages...`, 55, filename);
     const resized = await Promise.all(jpegs.map(j => resizeJpeg(j, 1800)));
 
-    // Build all batches
     const batches = [];
     for (let start = 0; start < totalImages; start += BATCH) {
       batches.push({ start, batch: resized.slice(start, start + BATCH) });
@@ -2492,11 +2485,19 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
           max_tokens: 4000
         })
       })
-      .then(res => res.ok ? res.json() : Promise.reject('Batch failed: ' + res.status))
-      .then(data => data.content[0]?.text || '')
+      .then(async res => {
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          const errMsg = errBody?.error?.message || errBody?.error || res.status;
+          console.error('Batch error pages', start + 1, '-', batchEnd, '| Status:', res.status, '| Message:', errMsg);
+          throw new Error(errMsg);
+        }
+        return res.json();
+      })
+      .then(data => data.content?.[0]?.text || '')
       .catch(err => {
-        console.error('Batch error pages', start + 1, '-', Math.min(start + BATCH, totalImages), err);
-        return '[Pages ' + (start + 1) + '-' + Math.min(start + BATCH, totalImages) + ' could not be read]';
+        console.error('Batch failed pages', start + 1, '-', batchEnd, err.message || err);
+        return '[Pages ' + (start + 1) + '-' + batchEnd + ' could not be read: ' + (err.message || err) + ']';
       });
     }));
 
