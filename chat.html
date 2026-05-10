@@ -2287,20 +2287,23 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     return fullText;
   }
 
-  // ── Resize a base64 JPEG to max width ─────────────────
-  async function resizeJpeg(base64, maxWidth = 600) {
+  // ── Resize a base64 JPEG to fit within Anthropic limits ─
+  // Single image: 5MB max. Multi-image: 2000px max per dimension.
+  // We target 1800px max on any side to stay safely under both limits.
+  async function resizeJpeg(base64, maxDim = 1800) {
     return new Promise(resolve => {
       const img = new Image();
       img.onload = () => {
-        const scale = Math.min(maxWidth / img.width, 1.0);
+        const scale = Math.min(maxDim / img.width, maxDim / img.height, 1.0);
         const canvas = document.createElement('canvas');
         canvas.width = Math.round(img.width * scale);
         canvas.height = Math.round(img.height * scale);
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.30).split(',')[1]);
+        // Quality 0.55 balances readability vs size — keeps most pages under 1MB
+        resolve(canvas.toDataURL('image/jpeg', 0.55).split(',')[1]);
       };
-      img.onerror = () => resolve(base64); // fallback to original
+      img.onerror = () => resolve(base64);
       img.src = 'data:image/jpeg;base64,' + base64;
     });
   }
@@ -2369,7 +2372,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       const pct = Math.round(20 + (i / totalPages) * 75);
       updateProgress(`OCR page ${i} of ${totalPages}...`, pct, file.name);
       const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 2.0 });
+      const naturalViewport = page.getViewport({ scale: 1.0 });
+      // Cap at 1800px max dimension to stay under Anthropic's 2000px multi-image limit
+      const scaleFactor = Math.min(1800 / naturalViewport.width, 1800 / naturalViewport.height, 1.5);
+      const viewport = page.getViewport({ scale: scaleFactor });
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
@@ -2430,7 +2436,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       updateProgress(`Rendering page ${i} of ${totalPages}...`, pct, file.name);
       const page = await pdf.getPage(i);
       const naturalViewport = page.getViewport({ scale: 1.0 });
-      const scale = Math.min(600 / naturalViewport.width, 1.0); // 600px max keeps batches under 1MB
+      // Cap both dimensions at 1800px — Anthropic's multi-image limit is 2000px per side
+      const scale = Math.min(1800 / naturalViewport.width, 1800 / naturalViewport.height, 1.0);
       const viewport = page.getViewport({ scale });
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
@@ -2439,23 +2446,28 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       await page.render({ canvasContext: ctx, viewport }).promise;
-      jpegs.push(canvas.toDataURL('image/jpeg', 0.40).split(',')[1]);
+      jpegs.push(canvas.toDataURL('image/jpeg', 0.55).split(',')[1]);
     }
     return jpegs;
   }
 
   // ── Send image batches to Claude via proxy ─────────────
   async function readImagesWithClaude(jpegs, filename) {
-    const BATCH = 2; // 2 pages per batch keeps requests under Cloudflare Worker 1MB body limit
+    const BATCH = 2;
     const totalImages = jpegs.length;
+
+    // Pre-resize ALL images to guarantee they stay under Anthropic's limits
+    // Multi-image requests: max 2000px per dimension, 5MB per image
+    updateProgress(`Optimizing ${totalImages} pages for upload...`, 55, filename);
+    const resized = await Promise.all(jpegs.map(j => resizeJpeg(j, 1800)));
 
     // Build all batches
     const batches = [];
     for (let start = 0; start < totalImages; start += BATCH) {
-      batches.push({ start, batch: jpegs.slice(start, start + BATCH) });
+      batches.push({ start, batch: resized.slice(start, start + BATCH) });
     }
 
-    updateProgress(`Reading ${totalImages} pages in ${batches.length} parallel batches...`, 60, filename);
+    updateProgress(`Reading ${totalImages} pages in ${batches.length} batches...`, 60, filename);
 
     // Fire all batches in parallel
     const results = await Promise.all(batches.map(({ start, batch }) => {
@@ -2543,7 +2555,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         reader.readAsDataURL(file);
       })));
       // Compress each image to 500px max width before sending
-      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 500)));
+      const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 1800)));
       const imgText = await readImagesWithClaude(allBase64, imageFiles.map(f=>f.name).join(', '));
       const imgLabel = imageFiles.length > 1 ? imageFiles.length + ' uploaded images' : imageFiles[0].name;
       allExtractedText += `\n\n=== ${imgLabel} ===\n${imgText}`;
