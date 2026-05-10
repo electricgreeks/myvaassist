@@ -2288,7 +2288,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   // ── Resize a base64 JPEG to max width ─────────────────
-  async function resizeJpeg(base64, maxWidth = 800) {
+  async function resizeJpeg(base64, maxWidth = 600) {
     return new Promise(resolve => {
       const img = new Image();
       img.onload = () => {
@@ -2430,7 +2430,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       updateProgress(`Rendering page ${i} of ${totalPages}...`, pct, file.name);
       const page = await pdf.getPage(i);
       const naturalViewport = page.getViewport({ scale: 1.0 });
-      const scale = Math.min(800 / naturalViewport.width, 1.2);
+      const scale = Math.min(600 / naturalViewport.width, 1.0); // 600px max keeps batches under 1MB
       const viewport = page.getViewport({ scale });
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
@@ -2446,7 +2446,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
   // ── Send image batches to Claude via proxy ─────────────
   async function readImagesWithClaude(jpegs, filename) {
-    const BATCH = 4;
+    const BATCH = 2; // 2 pages per batch keeps requests under Cloudflare Worker 1MB body limit
     const totalImages = jpegs.length;
 
     // Build all batches
