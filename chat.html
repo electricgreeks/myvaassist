@@ -1378,96 +1378,41 @@ When collecting doctor information for a nexus letter and the veteran doesn't kn
 
 Only after collecting all 8 items, generate the complete professional nexus letter. If you already know some of these from the conversation, skip those questions — only ask what you don't know yet.
 
-Once you have all the information, generate TWO sections separated by === markers:
-
-SECTION 1 — DOCTOR BRIEFING (what the doctor needs to know and write)
-SECTION 2 — EXAMPLE LETTER (a fully written example using the veteran's real facts, showing the doctor exactly what a strong finished letter looks like)
-
-Output in this exact format:
+Once you have these, generate a complete professional nexus letter template in this format:
 
 ---
-===BRIEFING===
-NEXUS LETTER BRIEFING — [VETERAN FULL NAME]
-For: Dr. [DOCTOR FULL NAME], [CREDENTIALS]
-Re: VA Disability Claim — [CONDITION]
-
-WHAT YOU ARE BEING ASKED TO DO:
-[VETERAN FULL NAME] is a veteran filing a VA disability claim for [CONDITION]. They need a medical opinion letter (called a "nexus letter") from you stating whether their condition is connected to their military service. This is a standard VA process — thousands of doctors write these every year.
-
-THE LEGAL STANDARD THE VA USES:
-Your letter must state one of these three opinions:
-• "At least as likely as not" (50% or greater) — this is the minimum needed to win
-• "More likely than not" (greater than 50%)
-• "Highly likely" (very strong connection)
-Even "at least as likely as not" is a winning opinion. You do not need to be certain — just 50/50 is enough.
-
-THE VETERAN'S SERVICE FACTS:
-• Name: [VETERAN FULL NAME]
-• Branch/Dates: [BRANCH], [SERVICE DATES]
-• Duty Station: [BASE/LOCATION]
-• Job/Role: [MOS/RATE/JOB]
-• Exposure: [SPECIFIC EXPOSURE — e.g., TCE in drinking water at Key West NAS, documented EPA Superfund site]
-• Condition claimed: [CONDITION], diagnosed [DATE/TIMEFRAME]
-
-WHAT YOUR LETTER MUST INCLUDE (VA REQUIREMENTS):
-1. Your full name, credentials, specialty, and practice address
-2. Statement that you have treated this patient and reviewed their records
-3. List the specific records you reviewed (service records, your own treatment records, lab results, imaging, etc.)
-4. Your clinical findings — current diagnosis, symptoms, how long they've had it
-5. Your medical opinion using the exact phrase: "at least as likely as not (50% or greater probability)"
-6. Your rationale — explain WHY the condition is connected to service (the exposure details below will help)
-7. Your signature, credentials, and date — on your practice letterhead
-
-THE MEDICAL CONNECTION FOR YOUR RATIONALE:
-[Provide specific medical literature connection between the exposure and condition — e.g., "TCE is a documented ototoxin that damages cochlear hair cells. Studies including [X] show a link between TCE exposure and sensorineural hearing loss with latency periods of 20-50 years."]
-
-SUBMIT THE COMPLETED LETTER TO:
-Department of Veterans Affairs, Evidence Intake Center, PO Box 4444, Janesville, WI 53547-4444
-Or the veteran can upload it at VA.gov when filing their claim.
-===END BRIEFING===
-
-===EXAMPLE===
-[Today's date]
-
-[DOCTOR FULL NAME], [CREDENTIALS]
-[PRACTICE NAME]
-[PRACTICE FULL ADDRESS]
-[PHONE NUMBER]
+[DATE]
 
 Department of Veterans Affairs
 Evidence Intake Center
 PO Box 4444
 Janesville, WI 53547-4444
 
-RE: Nexus Medical Opinion — [VETERAN FULL NAME]
+RE: Nexus Medical Opinion — [VETERAN FULL NAME], VA File #[FILE NUMBER IF KNOWN]
 
 To Whom It May Concern:
 
-I am [DOCTOR FULL NAME], [CREDENTIALS], board-certified in [SPECIALTY], practicing at [PRACTICE NAME] located at [PRACTICE FULL ADDRESS]. My phone number is [PHONE NUMBER].
+I, [DOCTOR FULL NAME], [CREDENTIALS], am a licensed physician practicing at [PRACTICE NAME], located at [PRACTICE FULL ADDRESS]. My phone number is [PHONE NUMBER].
 
-I have been treating [VETERAN FULL NAME] for [CONDITION] since [DATE]. I am writing this letter in support of their VA disability claim to provide my medical opinion regarding the relationship between their condition and their military service.
+I have treated [VETERAN NAME] and reviewed their relevant medical history. Based on my clinical evaluation and review of available records, it is my medical opinion that [CONDITION] is at least as likely as not (50% or greater probability) directly connected to [VETERAN NAME]'s military service.
 
-RECORDS REVIEWED: I have reviewed the following records in forming this opinion: [VETERAN FULL NAME]'s service treatment records, DD-214, my own treatment records dating from [DATE], [any imaging/labs/other records].
+MEDICAL FINDINGS: [Doctor — please describe: current diagnosis, symptoms, severity, treatment history, and how long patient has had this condition]
 
-CLINICAL FINDINGS: [VETERAN FULL NAME] presents with [CONDITION] diagnosed [DATE/TIMEFRAME]. Current symptoms include [symptoms]. The condition [has been continuous / developed over time / was diagnosed X years after service].
+BASIS FOR OPINION: [VETERAN NAME] served at [BASE/LOCATION] from [DATES]. During this period, [he/she/they] was exposed to [SPECIFIC CHEMICALS/EXPOSURES]. Medical literature establishes a connection between [EXPOSURE] and [CONDITION]. [Add specific studies or medical rationale here.]
 
-BASIS FOR MEDICAL OPINION: [VETERAN FULL NAME] served as [JOB] at [BASE] from [DATES]. During this period, [he/she/they] was exposed to [SPECIFIC EXPOSURE]. Medical literature establishes a connection between [EXPOSURE] and [CONDITION]. [INSERT SPECIFIC RATIONALE AND ANY SUPPORTING MEDICAL LITERATURE HERE.]
+RECORDS REVIEWED: [List: service records, VA records, private medical records, lab results, imaging reviewed]
 
-MEDICAL OPINION: Based on my clinical evaluation, review of the veteran's medical and service records, and my knowledge of the relevant medical literature, it is my professional medical opinion that [VETERAN FULL NAME]'s [CONDITION] is at least as likely as not (50% or greater probability) directly caused by or the result of [his/her/their] military service and the exposures described above.
+It is my professional medical opinion, based on reasonable medical certainty, that [CONDITION] is at least as likely as not (50% or greater probability) caused by or the result of [VETERAN NAME]'s military service and exposures described above.
 
-Sincerely,
-
-_______________________________
+Signature: _______________________
 [DOCTOR FULL NAME], [CREDENTIALS]
-[SPECIALTY]
 [PRACTICE NAME]
 [PRACTICE FULL ADDRESS]
 [PHONE NUMBER]
 Date: ___________________________
-===END EXAMPLE===
 ---
 
-Tell them: "Your nexus letter package is ready — click **Download Nexus Letter** below. It contains two pages: a briefing sheet for your doctor explaining exactly what to write and why, and a fully written example using your real facts that they can model their letter after. Bring both pages to your doctor. They write their own letter on their letterhead using the example as a guide — they don't copy it word for word, they write it in their own words."
+Tell them: "Your nexus letter template is ready. A **Download Nexus Letter** button has appeared below — click it to save the letter as a file. Bring it to your doctor, ask them to review it, fill in their details, sign it, and put it on their letterhead. Then submit it with your VA claim."
 
 A nexus letter is one of the most powerful pieces of evidence you can submit.
 
@@ -1945,7 +1890,9 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has confirmed they are filing for the FIRST TIME. Never ask if they have filed before or what their filing status is. You already know: first time filer.]' });
       conversationHistory.push({ role: 'assistant', content: '[Understood. This is a first-time filer. I will not ask about prior claims.]' });
     } else if (mode === 'nexus') {
-      opener = `Thank you for your service. I can help you draft a nexus letter — that's the doctor's opinion letter that connects your condition to your military service.\n\nTo write a strong one, I'll need a few things from you. Let's start simple.\n\n→ What condition are you trying to connect to your service?`;
+      opener = `Thank you for your service. Let's get your nexus letter package ready to bring to your doctor.\n\nI'll need a few things from you — it goes fast.\n\n→ What condition are you claiming? (for example: hearing loss, Crohn's disease, PTSD, back injury)`;
+      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: Veteran clicked the Nexus Letter button. They want a nexus letter. Never ask if they want one or explain what one is. Go straight to collecting: condition, service facts, veteran full name, doctor info. Do it now.]' });
+      conversationHistory.push({ role: 'assistant', content: '[Understood. Nexus mode. Collecting info directly.]' });
     } else if (mode === 'cp_exam') {
       opener = `Thank you for your service. A C&P exam — Compensation & Pension exam — is one of the most important steps in your VA claim. How you perform in that room directly affects your rating.\n\nI'm going to help you walk in prepared.\n\nFirst things first — the VA examiner will be filling out a specific form called a DBQ (Disability Benefits Questionnaire) for your condition. Reading that form before your exam tells you exactly what they're measuring and what language matters. I'll pull it for you once I know your condition.\n\n→ What condition is your C&P exam for?`;
       conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has an upcoming C&P exam. They are NOT filing for the first time and are NOT appealing a denial right now — they need C&P exam preparation. Your job is to: (1) identify the condition the exam covers, (2) ask when the exam is scheduled so you can flag urgency appropriately, (3) pull the exact DBQ criteria for that condition and explain what the examiner measures, (4) tell them what symptoms to describe and how to describe them — worst days not average days, (5) give them the full prep checklist, (6) offer to walk through a mock exam. Focus entirely on exam prep. Do NOT pivot to filing or appeals unless they ask. If the exam is within 2 weeks, flag it as urgent in the Flags panel.]' });
@@ -2203,14 +2150,12 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       </div>`;
 
     try {
-      const params = new URLSearchParams({
-        version: '2.1',
-        last_name: lastName,
-        city: city,
-        state: state || '',
-        limit: 10
+      const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev/npi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ last_name: lastName, city: city, state: state || '' })
       });
-      const res = await fetch(`https://npiregistry.cms.hhs.gov/api/?${params}`);
+      if (!res.ok) throw new Error('NPI lookup failed');
       const data = await res.json();
       const results = (data.results || []).filter(r => r.enumeration_type === 'NPI-1'); // individuals only
 
@@ -2847,7 +2792,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
   function appendMessage(role, text) {
     // Detect nexus letter and inject download button
-    if (role === 'ai' && (text.includes('===BRIEFING===') || (text.includes('Evidence Intake Center') && text.includes('at least as likely as not')))) {
+    if (role === 'ai' && text.includes('Evidence Intake Center') && text.includes('at least as likely as not')) {
       setTimeout(() => {
         const msgs = document.getElementById('messages');
         const btn = document.createElement('div');
@@ -3331,7 +3276,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         flags: panelItems.flags.map(i => i.text),
         forms_needed: (panelItems.forms||[]).map(f => `VA ${f.number} — ${f.name}`)
       },
-      nexus_letter: nexusLetter ? (typeof nexusLetter === 'object' ? nexusLetter.example || nexusLetter.briefing : nexusLetter) : null,
+      nexus_letter: nexusLetter || null,
       conversation_summary: cleanHistory
         .filter(m => m.role === 'assistant')
         .slice(-5)
@@ -3348,22 +3293,14 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function extractNexusLetter() {
+    // Scan conversation history for a nexus letter block (between --- markers)
     for (let i = conversationHistory.length - 1; i >= 0; i--) {
       const m = conversationHistory[i];
       if (m.role !== 'assistant') continue;
       const clean = m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim();
-      // New format: look for ===BRIEFING=== and ===EXAMPLE=== blocks
-      const briefingMatch = clean.match(/===BRIEFING===([\s\S]*?)===END BRIEFING===/);
-      const exampleMatch = clean.match(/===EXAMPLE===([\s\S]*?)===END EXAMPLE===/);
-      if (briefingMatch || exampleMatch) {
-        return {
-          briefing: briefingMatch ? briefingMatch[1].trim() : '',
-          example: exampleMatch ? exampleMatch[1].trim() : ''
-        };
-      }
-      // Legacy format fallback
+      // Look for letter block between --- markers containing VA Evidence Intake Center
       const match = clean.match(/---\s*\n([\s\S]*?Evidence Intake Center[\s\S]*?Date:[\s\S]*?)\n---/);
-      if (match) return { briefing: '', example: match[1].trim() };
+      if (match) return match[1].trim();
     }
     return null;
   }
@@ -3399,50 +3336,48 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function downloadNexusLetter() {
-    const result = extractNexusLetter();
-    if (!result) {
+    const letter = extractNexusLetter();
+    if (!letter) {
       alert('Nexus letter not found. Try downloading your session summary instead.');
       return;
     }
 
-    const divider = '\n' + '='.repeat(60) + '\n';
-    const pageBreak = '\n\n\n' + '- - - - - - - - - - - - PAGE BREAK - - - - - - - - - - - -' + '\n\n\n';
+    const divider = '\n' + '='.repeat(50) + '\n';
+    const pageBreak = '\n\n\n' + '- - - - - - - - - - - - CUT HERE / PAGE BREAK - - - - - - - - - - - -' + '\n\n\n';
 
     const page1 = [
-      `NEXUS LETTER PACKAGE`,
+      `NEXUS LETTER — INSTRUCTIONS FOR YOUR DOCTOR`,
       `Generated by MyVAAssist — ${new Date().toLocaleDateString()}`,
       divider,
-      `HOW TO USE THESE TWO PAGES:`,
+      `HOW TO USE THIS LETTER:`,
       ``,
-      `PAGE 1 (this page) — DOCTOR BRIEFING`,
-      `Give this to your doctor. It explains what they need to write,`,
-      `the legal standard the VA uses, your service facts, and the`,
-      `medical connection they should reference.`,
-      ``,
-      `PAGE 2 — EXAMPLE LETTER`,
-      `This shows your doctor what a strong finished nexus letter looks`,
-      `like using YOUR specific facts. They write their own letter on`,
-      `their practice letterhead in their own words — they don't copy`,
-      `this word for word. The example just shows them the structure,`,
-      `the legal language, and the level of detail the VA expects.`,
+      `1. Read the letter on the next page carefully`,
+      `2. Fill in ALL bracketed sections [ ] with your information`,
+      `3. In the MEDICAL FINDINGS section — describe the veteran's current`,
+      `   diagnosis, symptoms, severity, and how long they have had the condition`,
+      `4. In the RECORDS REVIEWED section — list all records you reviewed`,
+      `   (service records, VA records, private medical records, lab results, imaging)`,
+      `5. Sign the letter`,
+      `6. Put the letter on your official practice letterhead`,
+      `7. Give the signed letter to the veteran to submit with their VA disability claim`,
       ``,
       divider,
-      result.briefing || '(Briefing not generated — see example letter on page 2)',
-      divider,
-      `SUBMIT COMPLETED LETTER TO:`,
-      `Department of Veterans Affairs`,
-      `Evidence Intake Center`,
-      `PO Box 4444`,
-      `Janesville, WI 53547-4444`,
-      `Or upload at VA.gov when filing the disability claim.`,
+      `IMPORTANT LEGAL LANGUAGE:`,
+      `The phrase "at least as likely as not (50% or greater probability)" is the`,
+      `exact standard VA uses for service connection. This language must appear`,
+      `in your letter exactly as written for it to carry legal weight with the VA.`,
+      ``,
+      `QUESTIONS? The veteran can return to myvaassist.com for help at any time.`,
     ].join('\n');
 
     const page2 = [
-      `EXAMPLE NEXUS LETTER — FOR DOCTOR REFERENCE ONLY`,
-      `(Doctor writes their own letter on practice letterhead using this as a guide)`,
+      `NEXUS LETTER TEMPLATE — PRINT ON PRACTICE LETTERHEAD`,
       divider,
-      result.example || result.briefing || '(Example not generated)',
+      letter,
       divider,
+      `Submit to: Department of Veterans Affairs, Evidence Intake Center`,
+      `           PO Box 4444, Janesville, WI 53547-4444`,
+      `Or upload at va.gov when filing the disability claim.`,
     ].join('\n');
 
     downloadText(page1 + pageBreak + page2, `nexus-letter-${Date.now()}.txt`);
