@@ -2614,15 +2614,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
               allExtractedText += `\n\n=== ${file.name} ===\n[Could not read this PDF: ${pdfErr.message}. Try uploading specific pages as a smaller PDF.]`;
             }
           } else {
-            // Over 20MB scanned PDF — use Tesseract OCR locally (no images sent to API, bypasses content filter)
-            updateProgress('Large PDF detected — running OCR locally...', 40, file.name);
-            try {
-              const ocrText = await ocrPdfPages(file);
-              allExtractedText += `\n\n=== ${file.name} ===\n${ocrText}`;
-            } catch(ocrErr) {
-              console.warn('OCR failed:', ocrErr.message);
-              allExtractedText += `\n\n=== ${file.name} ===\n[Could not OCR this PDF: ${ocrErr.message}. Try uploading key pages as a smaller file.]`;
-            }
+            // Over 20MB — too large, instruct veteran
+            allExtractedText += `\n\n=== ${file.name} ===\n[FILE TOO LARGE: This PDF is ${fileSizeMB.toFixed(0)}MB. Please upload the specific pages you need — denial letter, rating decision, or key evidence — as a separate smaller PDF under 20MB.]`;
           }
         }
       } catch(err) {
@@ -3458,7 +3451,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   let tourHighlighted = null;
 
   function startTour() {
-    if (localStorage.getItem('mva_tour_done')) return;
+    if (sessionStorage.getItem('mva_tour_done')) return;
     tourStep = 0;
     document.getElementById('tour-overlay').classList.add('active');
     showTourStep();
@@ -3521,7 +3514,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     if (tourHighlighted) tourHighlighted.classList.remove('tour-highlight');
     document.getElementById('tour-overlay').classList.remove('active');
     document.getElementById('tour-tooltip').style.display = 'none';
-    localStorage.setItem('mva_tour_done', '1');
+    sessionStorage.setItem('mva_tour_done', '1');
   }
 
   // ── Input helpers ──────────────────────────────────────
