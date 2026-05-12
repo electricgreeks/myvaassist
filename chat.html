@@ -1366,9 +1366,7 @@ When collecting doctor information for a nexus letter and the veteran doesn't kn
 - Then tell the veteran: "Let me search for that doctor's information." and call the searchDoctor() function by outputting this exact tag on its own line: <<<SEARCH_DOCTOR:lastname:city:state>>>
 - Example: if veteran says "Dr. Smith in Lafayette Louisiana" output: <<<SEARCH_DOCTOR:Smith:Lafayette:LA>>>
 - The app will search the NPI registry and show matching doctors in the search panel for the veteran to pick from
-- IF the search fails or finds no results, the app will show a fallback panel with a Google search link and a manual entry form. Tell the veteran: "The registry didn't find them automatically — I've opened a search panel where you can look them up on Google and enter their details manually. Once you fill it in and click 'Use This Doctor', I'll have everything I need to finish the letter."
-- NEVER generate the nexus letter with placeholder brackets like [FIRST NAME], [MD/DO], [PRACTICE NAME], [PHONE NUMBER] — if you don't have the doctor's full details yet, wait and ask. Only generate the letter once you have real values for all fields.
-- Once they confirm the right doctor, you'll have their full credentials, address, and phone number for the letter. Do not generate the letter until you have ALL of these:
+- Once they confirm the right doctor, you'll have their full credentials, address, and phone number for the letter Do not generate the letter until you have ALL of these:
 1. What condition are they claiming? (e.g., hearing loss, Crohn's disease)
 2. What specific event, exposure, or injury during service caused or contributed to it? (if not already known from conversation)
 3. When and where did the exposure/event occur? (if not already known)
@@ -1419,21 +1417,6 @@ Tell them: "Your nexus letter template is ready. A **Download Nexus Letter** but
 A nexus letter is one of the most powerful pieces of evidence you can submit.
 
 You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.
-
-END OF CONVERSATION — CRITICAL:
-When a veteran has completed their main task (filed a claim, finished a nexus letter, finished an appeal plan), do NOT just stop. Always:
-1. Tell them what they accomplished in 2-3 sentences
-2. Ask: "Before we wrap up — do you have any medical records, old treatment notes, or buddy statements we haven't looked at? Uploading them now strengthens your case."
-3. Remind them to use the Find Evidence button: "Also — click the **Find Evidence** button at the bottom of your screen. I'll pull up medical studies and legal decisions that support your specific conditions — you can add any of those to your to-do list."
-4. Then say: "When you're ready to close out, click **Save Session** at the bottom left — it downloads two files. Keep the JSON file — when you come back to myvaassist.com, upload it and I'll pick up right where we left off. The text file is your full session summary to print or share."
-5. End with: "→ Is there anything else about your claim you want to go over before you go?"
-NEVER end a conversation without this wrap-up. NEVER leave the veteran without telling them to save their session.
-
-MEDICAL FILES AND PDF UPLOAD — CRITICAL:
-When a veteran mentions they have medical records, treatment notes, or any documents on their phone or computer:
-- If they have photos/images of documents: "If you have photos of your records, the easiest way is to combine them into a PDF first. Go to [ilovepdf.com](https://www.ilovepdf.com/jpg_to_pdf) — it's free. Upload your photos there and download a single PDF, then upload that here."
-- If they have multiple documents: "You can merge multiple PDFs at [ilovepdf.com](https://www.ilovepdf.com/merge_pdf) — free and takes 30 seconds. That way I can read everything in one upload."
-- Always offer the Upload Files button: "Use the **Upload Files** button at the bottom of the screen to upload your PDF directly here — I'll read it and pull out everything relevant to your claim."
 
 MID-FORM ASSISTANCE: If a veteran is filling out a VA form on VA.gov and comes back with a specific field question, answer it directly and simply. Common questions:
 - "Fully Developed Claim vs Standard" → FDC means you're submitting all evidence now and want a faster decision. Standard means VA will help gather evidence. FDC is usually better if you have your records ready.
@@ -1913,7 +1896,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has an upcoming C&P exam. They are NOT filing for the first time and are NOT appealing a denial right now — they need C&P exam preparation. Your job is to: (1) identify the condition the exam covers, (2) ask when the exam is scheduled so you can flag urgency appropriately, (3) pull the exact DBQ criteria for that condition and explain what the examiner measures, (4) tell them what symptoms to describe and how to describe them — worst days not average days, (5) give them the full prep checklist, (6) offer to walk through a mock exam. Focus entirely on exam prep. Do NOT pivot to filing or appeals unless they ask. If the exam is within 2 weeks, flag it as urgent in the Flags panel.]' });
       conversationHistory.push({ role: 'assistant', content: '[Understood. C&P exam prep mode. I will focus on preparing this veteran for their upcoming exam — DBQ criteria, symptom description strategy, and exam day checklist.]' });
     } else {
-      opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nThe most important thing we can look at right now is your denial letter or rating decision — that document tells us exactly what the VA said and gives us the clearest path to fight back.\n\nIf you have it as a PDF or photo, click **Upload Files** below and send it over. Or tell me in your own words what happened with your claim and we'll go from there.`;
+      opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
     }
     appendMessage('ai', opener);
     // Start onboarding tour for first-time visitors
@@ -2177,7 +2160,11 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       const results = (data.results || []).filter(r => r.enumeration_type === 'NPI-1'); // individuals only
 
       if (!results.length) {
-        showDoctorFallback(lastName, city, state);
+        document.getElementById('search-results-view').innerHTML = `
+          <div class="search-empty">
+            <div>No doctors found for "${lastName}" in ${city}.</div>
+            <div style="font-size:11px;opacity:0.6;">Try a different spelling or city name.</div>
+          </div>`;
         return;
       }
 
@@ -2215,44 +2202,12 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       });
 
     } catch(err) {
-      showDoctorFallback(lastName, city, state);
+      document.getElementById('search-results-view').innerHTML = `
+        <div class="search-empty">
+          <div>Could not reach NPI registry.</div>
+          <div style="font-size:11px;opacity:0.6;">${err.message}</div>
+        </div>`;
     }
-  }
-
-  function showDoctorFallback(lastName, city, state) {
-    const googleQuery = encodeURIComponent(`Dr ${lastName} ${city} ${state || ''} doctor`);
-    const googleUrl = `https://www.google.com/search?q=${googleQuery}`;
-    document.getElementById('search-pane-title').textContent = 'Doctor not found in registry';
-    document.getElementById('search-results-view').innerHTML = `
-      <div style="padding:16px;">
-        <div style="font-size:13px;color:var(--text);margin-bottom:12px;font-weight:600;">Dr. ${lastName} wasn't found in the NPI registry automatically.</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Search Google to find their full name, address, and phone number, then come back and enter it manually below.</div>
-        <a href="${googleUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#2563eb;color:white;font-size:13px;font-weight:600;padding:10px 16px;border-radius:8px;text-decoration:none;margin-bottom:20px;">
-          🔍 Search Google for Dr. ${lastName} in ${city}
-        </a>
-        <div style="border-top:1px solid var(--border);padding-top:16px;">
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:600;">Or enter their details manually:</div>
-          <input id="dr-fullname" placeholder="Full name (e.g. John Salvatori)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:8px;box-sizing:border-box;" />
-          <input id="dr-cred" placeholder="Credentials (e.g. MD)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:8px;box-sizing:border-box;" />
-          <input id="dr-practice" placeholder="Practice or hospital name" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:8px;box-sizing:border-box;" />
-          <input id="dr-address" placeholder="Full address (street, city, state, zip)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:8px;box-sizing:border-box;" />
-          <input id="dr-phone" placeholder="Phone number" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:12px;box-sizing:border-box;" />
-          <button onclick="submitManualDoctor()" style="background:#34d399;color:#000;font-size:13px;font-weight:700;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;width:100%;">Use This Doctor →</button>
-        </div>
-      </div>`;
-  }
-
-  function submitManualDoctor() {
-    const name = document.getElementById('dr-fullname').value.trim();
-    const cred = document.getElementById('dr-cred').value.trim();
-    const practice = document.getElementById('dr-practice').value.trim();
-    const address = document.getElementById('dr-address').value.trim();
-    const phone = document.getElementById('dr-phone').value.trim();
-    if (!name) { alert('Please enter the doctor\'s full name.'); return; }
-    const msg = `That's my doctor: ${name}${cred ? ', ' + cred : ''}. Practice: ${practice || 'not provided'}. Address: ${address || 'not provided'}. Phone: ${phone || 'not provided'}.`;
-    document.getElementById('user-input').value = msg;
-    sendMessage();
-    closeSearchPane();
   }
 
   function selectDoctor(idx, info) {
@@ -2594,7 +2549,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       }
     }
 
-    // Process all images as one batched read (likely pages of the same document)
+    // Process uploaded images — send directly as image blocks in the main conversation
     if (imageFiles.length > 0) {
       updateProgress(`Reading ${imageFiles.length} image(s)...`, 20, imageFiles.map(f=>f.name).join(', '));
       const allBase64Raw = await Promise.all(imageFiles.map(file => new Promise(r => {
@@ -2602,11 +2557,21 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         reader.onload = () => r(reader.result.split(',')[1]);
         reader.readAsDataURL(file);
       })));
-      // Compress each image to 500px max width before sending
       const allBase64 = await Promise.all(allBase64Raw.map(b64 => resizeJpeg(b64, 1800)));
-      const imgText = await readImagesWithClaude(allBase64, imageFiles.map(f=>f.name).join(', '));
+      // Build image blocks to inject directly into the main conversation
+      const imageBlocks = allBase64.map(b64 => ({
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: b64 }
+      }));
       const imgLabel = imageFiles.length > 1 ? imageFiles.length + ' uploaded images' : imageFiles[0].name;
-      allExtractedText += `\n\n=== ${imgLabel} ===\n${imgText}`;
+      // Add a text block telling the bot what these are
+      imageBlocks.unshift({
+        type: 'text',
+        text: `The veteran just uploaded ${imageFiles.length} image(s): ${imgLabel}. Read all text visible in these images and use it to help with their claim. Extract names, dates, conditions, decisions, ratings, service dates — anything relevant.`
+      });
+      // Store image blocks to be sent with the document analysis message
+      window._pendingImageBlocks = imageBlocks;
+      allExtractedText += `\n\n=== ${imgLabel} ===\n[Images will be sent directly to assistant]`;
     }
 
     for (const file of nonImageFiles) {
@@ -2675,10 +2640,15 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     updateProgress('Analyzing...', 99, 'Sending to assistant...');
 
     // Step 3: Now send the extracted document text as a follow-up
-    const analysisBlocks = [{
-      type: 'text',
-      text: `I've finished reading the documents. Here is the extracted text:\n${allExtractedText}\n\nNow integrate this with what the veteran has told you so far. As a VA benefits expert, identify: (1) veteran's name and file number, (2) specific conditions claimed, (3) what the VA decided on each — granted or denied, (4) exact denial reasons, (5) ratings assigned, (6) key dates, (7) evidence gaps, (8) strongest next steps. Cross-reference the documents with anything they've shared in conversation. Update the side panel. Keep your tone conversational — you're already mid-conversation with them.`
-    }];
+    const pendingImages = window._pendingImageBlocks || [];
+    window._pendingImageBlocks = null;
+    const analysisBlocks = [
+      ...pendingImages,
+      {
+        type: 'text',
+        text: `I've finished reading the documents. Here is the extracted text:\n${allExtractedText}\n\nNow integrate this with what the veteran has told you so far. As a VA benefits expert, identify: (1) veteran's name and file number, (2) specific conditions claimed, (3) what the VA decided on each — granted or denied, (4) exact denial reasons, (5) ratings assigned, (6) key dates, (7) evidence gaps, (8) strongest next steps. Cross-reference the documents with anything they've shared in conversation. Update the side panel. Keep your tone conversational — you're already mid-conversation with them.`
+      }
+    ];
 
     removeProgress();
     await sendToAIWithContent(analysisBlocks);
