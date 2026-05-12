@@ -1366,15 +1366,14 @@ When collecting doctor information for a nexus letter and the veteran doesn't kn
 - Then tell the veteran: "Let me search for that doctor's information." and call the searchDoctor() function by outputting this exact tag on its own line: <<<SEARCH_DOCTOR:lastname:city:state>>>
 - Example: if veteran says "Dr. Smith in Lafayette Louisiana" output: <<<SEARCH_DOCTOR:Smith:Lafayette:LA>>>
 - The app will search the NPI registry and show matching doctors in the search panel for the veteran to pick from
-- Once they confirm the right doctor, you'll have their full credentials, address, and phone number for the letter Do not generate the letter until you have ALL of these:
+- Once the app sends doctor info (a message starting with "My doctor is:"), immediately generate the complete nexus letter using those exact details — no more questions.
+- VETERAN NAME: Accept whatever name the veteran gives you. Never question whether it is their "real" name or ask them to confirm it. Use it exactly as given.
+- Do not generate the letter until you have ALL of these:
 1. What condition are they claiming? (e.g., hearing loss, Crohn's disease)
 2. What specific event, exposure, or injury during service caused or contributed to it? (if not already known from conversation)
 3. When and where did the exposure/event occur? (if not already known)
-4. What is the veteran's full legal name? (if not already known)
-5. Doctor's full name and credentials (MD, DO, etc.)
-6. Doctor's practice or hospital name
-7. Doctor's full mailing address (street, city, state, zip)
-8. Doctor's phone number
+4. What is the veteran's full legal name? (if not already known — accept whatever they say)
+5. Doctor details sent by the app (message starting with "My doctor is:")
 
 Only after collecting all 8 items, generate the complete professional nexus letter. If you already know some of these from the conversation, skip those questions — only ask what you don't know yet.
 
@@ -2137,15 +2136,9 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     return userText;
   }
 
-  // ── Doctor Search (NPI Registry) ───────────────────────
+  // ── Doctor Search (NPI Registry) — Modal-based ────────
   async function searchDoctor(lastName, city, state) {
-    openSearchPane('evidence');
-    document.getElementById('search-pane-title').textContent = 'Searching doctors...';
-    document.getElementById('search-results-view').innerHTML = `
-      <div class="search-loading">
-        <div class="search-spinner"></div>
-        <div>Searching NPI registry for Dr. ${lastName} in ${city}${state ? ', ' + state : ''}...</div>
-      </div>`;
+    showDoctorModal(lastName, city, state, 'searching');
 
     try {
       const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev/npi', {
@@ -2153,41 +2146,24 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ last_name: lastName, city: city, state: state || '' })
       });
-      if (!res.ok) throw new Error('NPI lookup failed: ' + res.status);
+      if (!res.ok) throw new Error('NPI lookup failed');
       const data = await res.json();
-      const results = (data.results || []).filter(r => r.enumeration_type === 'NPI-1'); // individuals only
+      const results = (data.results || []).filter(r => r.enumeration_type === 'NPI-1');
 
-      if (!results.length) {
-        document.getElementById('search-results-view').innerHTML = `
-          <div class="search-empty">
-            <div>No doctors found for "${lastName}" in ${city}.</div>
-            <div style="font-size:11px;opacity:0.6;">Try a different spelling or city name.</div>
-          </div>`;
+      // Deduplicate by NPI number
+      const seen = new Set();
+      const unique = results.filter(r => {
+        if (seen.has(r.number)) return false;
+        seen.add(r.number);
+        return true;
+      });
+
+      if (!unique.length) {
+        showDoctorModal(lastName, city, state, 'notfound');
         return;
       }
 
-      document.getElementById('search-pane-title').textContent = `${results.length} doctors found`;
-      document.getElementById('search-results-view').innerHTML = results.map((r, i) => {
-        const basic = r.basic || {};
-        const name = `${basic.first_name || ''} ${basic.last_name || ''}`.trim();
-        const cred = basic.credential || '';
-        const addr = (r.addresses || []).find(a => a.address_purpose === 'LOCATION') || (r.addresses || [])[0] || {};
-        const addrStr = [addr.address_1, addr.city, addr.state, addr.postal_code].filter(Boolean).join(', ');
-        const phone = addr.telephone_number || '';
-        const taxonomy = ((r.taxonomies || []).find(t => t.primary) || {}).desc || '';
-
-        return `<div class="search-result-card" data-idx="${i}">
-          <div class="src-source">${taxonomy || 'Physician'}</div>
-          <div class="src-title">${name}${cred ? ', ' + cred : ''}</div>
-          <div class="src-snippet">${addrStr}${phone ? ' · ' + phone : ''}</div>
-          <div class="src-actions">
-            <button class="src-btn src-btn-read" onclick="selectDoctor(${i}, ${JSON.stringify({name, cred, addrStr, phone}).replace(/"/g, '&quot;')})">This is my doctor</button>
-          </div>
-        </div>`;
-      }).join('');
-
-      // Store results for selection
-      window._doctorSearchResults = results.map(r => {
+      window._doctorSearchResults = unique.map(r => {
         const basic = r.basic || {};
         const addr = (r.addresses || []).find(a => a.address_purpose === 'LOCATION') || (r.addresses || [])[0] || {};
         return {
@@ -2195,27 +2171,103 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
           cred: basic.credential || '',
           address: [addr.address_1, addr.city, addr.state, addr.postal_code].filter(Boolean).join(', '),
           phone: addr.telephone_number || '',
-          taxonomy: ((r.taxonomies || []).find(t => t.primary) || {}).desc || ''
+          taxonomy: ((r.taxonomies || []).find(t => t.primary) || {}).desc || '',
+          practice: addr.address_1 ? '' : ''
         };
       });
 
+      showDoctorModal(lastName, city, state, 'results', window._doctorSearchResults);
+
     } catch(err) {
-      document.getElementById('search-results-view').innerHTML = `
-        <div class="search-empty">
-          <div>Could not reach NPI registry.</div>
-          <div style="font-size:11px;opacity:0.6;">${err.message}</div>
-        </div>`;
+      showDoctorModal(lastName, city, state, 'notfound');
     }
   }
 
-  function selectDoctor(idx, info) {
+  function showDoctorModal(lastName, city, state, mode, results) {
+    // Remove existing modal
+    const existing = document.getElementById('doctor-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'doctor-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    let inner = '';
+
+    if (mode === 'searching') {
+      inner = `
+        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:32px;width:100%;max-width:420px;text-align:center;">
+          <div class="search-spinner" style="margin:0 auto 16px;"></div>
+          <div style="font-size:14px;color:var(--text);">Searching for Dr. ${lastName} in ${city}...</div>
+        </div>`;
+    } else if (mode === 'results') {
+      const cards = results.map((dr, i) => `
+        <div style="border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface2);">
+          <div style="font-size:11px;color:var(--accent);font-family:IBM Plex Mono,monospace;margin-bottom:4px;">${dr.taxonomy || 'Physician'}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;">${dr.name}${dr.cred ? ', ' + dr.cred : ''}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${dr.address}${dr.phone ? ' · ' + dr.phone : ''}</div>
+          <button onclick="selectDoctor(${i})" style="background:#2563eb;color:white;font-size:12px;font-weight:600;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;width:100%;">✓ This is my doctor</button>
+        </div>`).join('');
+      inner = `
+        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:15px;font-weight:700;color:var(--text);">${results.length} doctor${results.length>1?'s':''} found</div>
+            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+          </div>
+          ${cards}
+          <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Not seeing the right doctor?</div>
+            <button onclick="showDoctorModal('${lastName}','${city}','${state||''}','notfound')" style="background:transparent;color:var(--accent);font-size:12px;border:1px solid var(--border2);padding:6px 12px;border-radius:6px;cursor:pointer;">Enter details manually →</button>
+          </div>
+        </div>`;
+    } else {
+      // notfound — Google search + manual entry
+      const googleQuery = encodeURIComponent(`Dr ${lastName} ${city} ${state || ''} doctor phone address`);
+      const googleUrl = `https://www.google.com/search?q=${googleQuery}`;
+      inner = `
+        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div style="font-size:15px;font-weight:700;color:var(--text);">Doctor not found automatically</div>
+            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Search Google to find their name, address, and phone number, then enter it below.</div>
+          <a href="${googleUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#2563eb;color:white;font-size:13px;font-weight:600;padding:10px;border-radius:8px;text-decoration:none;margin-bottom:16px;">🔍 Search Google for Dr. ${lastName} in ${city}</a>
+          <div style="border-top:1px solid var(--border);padding-top:14px;">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">Enter details manually:</div>
+            <input id="dr-fullname" placeholder="Full name (e.g. Erick Salvatierra)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
+            <input id="dr-cred" placeholder="Credentials (e.g. MD)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
+            <input id="dr-practice" placeholder="Practice name" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
+            <input id="dr-address" placeholder="Full address (street, city, state, zip)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
+            <input id="dr-phone" placeholder="Phone number" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:12px;box-sizing:border-box;" />
+            <button onclick="submitManualDoctor()" style="background:#34d399;color:#000;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;cursor:pointer;width:100%;">Use This Doctor →</button>
+          </div>
+        </div>`;
+    }
+
+    modal.innerHTML = inner;
+    document.body.appendChild(modal);
+  }
+
+  function selectDoctor(idx) {
     const dr = (window._doctorSearchResults || [])[idx];
     if (!dr) return;
-    // Send selection back to bot as a user message
-    const msg = `That's my doctor: ${dr.name}${dr.cred ? ', ' + dr.cred : ''}. Address: ${dr.address}. Phone: ${dr.phone}.`;
-    document.getElementById('user-input').value = msg;
-    sendMessage();
-    closeSearchPane();
+    document.getElementById('doctor-modal').remove();
+    const msg = `My doctor is: ${dr.name}${dr.cred ? ', ' + dr.cred : ''}. Practice: ${dr.taxonomy || 'Medical Practice'}. Address: ${dr.address}. Phone: ${dr.phone}.`;
+    appendMessage('user', msg);
+    sendToAI(msg, false);
+  }
+
+  function submitManualDoctor() {
+    const name = document.getElementById('dr-fullname').value.trim();
+    const cred = document.getElementById('dr-cred').value.trim();
+    const practice = document.getElementById('dr-practice').value.trim();
+    const address = document.getElementById('dr-address').value.trim();
+    const phone = document.getElementById('dr-phone').value.trim();
+    if (!name) { alert('Please enter the doctor\'s full name.'); return; }
+    document.getElementById('doctor-modal').remove();
+    const msg = `My doctor is: ${name}${cred ? ', ' + cred : ''}. Practice: ${practice || 'unknown'}. Address: ${address || 'unknown'}. Phone: ${phone || 'unknown'}.`;
+    appendMessage('user', msg);
+    sendToAI(msg, false);
   }
 
   // ── Update parseResponse to handle SEARCH_DOCTOR tag ──
