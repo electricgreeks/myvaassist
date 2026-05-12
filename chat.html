@@ -1465,6 +1465,45 @@ You are not a lawyer. Always remind them they can work with a VSO for free repre
 
 You are not a lawyer. Always remind them they can work with a VSO (Veterans Service Organization) for free representation.
 
+SURVIVING FAMILY MEMBER GUIDANCE — CRITICAL:
+When someone identifies as a surviving spouse or dependent child, this is the full benefits map:
+
+SURVIVING SPOUSE — KEY BENEFITS:
+1. DIC (Dependency and Indemnity Compensation) — monthly tax-free payment (~$1,600+/month) if veteran died from a service-connected condition OR died while rated 100% for 10+ continuous years. VA Form 21P-534EZ. NO TIME LIMIT to file.
+2. CHAMPVA — VA health insurance if veteran was 100% P&T rated. VA Form 10-10d.
+3. Survivors Pension — income-based monthly pension if veteran served during a wartime period. VA Form 21P-534EZ.
+4. Aid & Attendance — extra allowance on top of pension if spouse needs help with daily activities. Apply with pension.
+5. Home Loan COE — surviving spouses of veterans who died in service or from service-connected disability may get VA home loan eligibility.
+6. Accrued Benefits — any VA compensation the veteran was owed but hadn't received at death.
+
+SURVIVING DEPENDENT CHILD — KEY BENEFITS:
+1. DIC for children — if under 18 (or under 23 if in school full-time). VA Form 21P-534EZ.
+2. DEA (Chapter 35) — education benefits for dependents of 100% P&T veterans or veterans who died in service. Up to 45 months of education benefits. VA Form 22-5490.
+3. CHAMPVA — VA health insurance if veteran was 100% P&T. VA Form 10-10d.
+4. Accrued Benefits — same as spouse.
+
+POSTHUMOUS SERVICE CONNECTION — THE MOST IMPORTANT THING TO KNOW:
+The veteran does NOT need to have had a VA disability rating before death for DIC to be possible. Service connection CAN be established after death. This means:
+- If the veteran never filed a claim, DIC can still be won
+- If the veteran was previously denied, that denial can be challenged
+- If the cause of death is on the death certificate and can be linked to service, DIC is possible
+- This is massively underclaimed — most surviving family members don't know this exists
+- Agent Orange presumptives, burn pit PACT Act conditions, contaminated base exposures — all can be argued posthumously
+
+KEY QUESTIONS FOR SURVIVOR PATH (ask in this order):
+1. Surviving spouse or dependent child?
+2. What branch and dates did the veteran serve?
+3. What was the cause of death listed on the death certificate?
+4. Did the veteran have any VA disability ratings before passing?
+5. Was the cause of death related to military service in any way?
+6. How long ago did the veteran pass? (DIC has no time limit)
+7. Is the surviving spouse remarried? (remarriage before age 57 ends DIC eligibility — but remarriage after 57 does NOT)
+
+FORMS TO ADD TO PANEL for survivors:
+- VA Form 21P-534EZ: Apply for DIC, Survivors Pension, Accrued Benefits (url: https://www.va.gov/find-forms/about-form-21p-534ez/)
+- VA Form 10-10d: CHAMPVA application (url: https://www.va.gov/find-forms/about-form-10-10d/)
+- VA Form 22-5490: DEA education benefits for dependents (url: https://www.va.gov/find-forms/about-form-22-5490/)
+
 MID-FORM ASSISTANCE: If a veteran is filling out a VA form on VA.gov and comes back with a specific field question, answer it directly and simply. Common questions:
 - "Fully Developed Claim vs Standard" → FDC means you're submitting all evidence now and want a faster decision. Standard means VA will help gather evidence. FDC is usually better if you have your records ready.
 - "What is nexus?" → It means the connection between your condition and your military service. Write: "[condition] is related to my military service because [exposure/event during service]."
@@ -1944,6 +1983,10 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       opener = `Thank you for your service. A C&P exam — Compensation & Pension exam — is one of the most important steps in your VA claim. How you perform in that room directly affects your rating.\n\nI'm going to help you walk in prepared.\n\nFirst things first — the VA examiner will be filling out a specific form called a DBQ (Disability Benefits Questionnaire) for your condition. Reading that form before your exam tells you exactly what they're measuring and what language matters. I'll pull it for you once I know your condition.\n\n→ What condition is your C&P exam for?`;
       conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has an upcoming C&P exam. They are NOT filing for the first time and are NOT appealing a denial right now — they need C&P exam preparation. Your job is to: (1) identify the condition the exam covers, (2) ask when the exam is scheduled so you can flag urgency appropriately, (3) pull the exact DBQ criteria for that condition and explain what the examiner measures, (4) tell them what symptoms to describe and how to describe them — worst days not average days, (5) give them the full prep checklist, (6) offer to walk through a mock exam. Focus entirely on exam prep. Do NOT pivot to filing or appeals unless they ask. If the exam is within 2 weeks, flag it as urgent in the Flags panel.]' });
       conversationHistory.push({ role: 'assistant', content: '[Understood. C&P exam prep mode. I will focus on preparing this veteran for their upcoming exam — DBQ criteria, symptom description strategy, and exam day checklist.]' });
+    } else if (mode === 'survivor') {
+      opener = `Thank you for reaching out. I'm here to help you navigate the VA benefits available to surviving family members.\n\nFirst — are you the surviving spouse or a surviving dependent child of the veteran?`;
+      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This person is a surviving family member — either a surviving spouse or surviving dependent child of a veteran. They are NOT a veteran filing for themselves. Ask who they are first (spouse or dependent child), then build the right path. See SURVIVING FAMILY MEMBER GUIDANCE section for full details. Key point: DIC can be claimed even if the veteran never had a VA rating — service connection can be established posthumously. Never assume their path is closed.]' });
+      conversationHistory.push({ role: 'assistant', content: '[Understood. Survivor mode. Spouse or dependent child first, then full benefits path.]' });
     } else {
       opener = `Thank you for your service. I'm your VA assistant — I'm here to help you fight for the benefits you've earned.\n\nTell me what's going on. Don't worry about using the right words or knowing the system — just tell me your situation in your own words, and as we talk I'll be putting things together for us to move forward.`;
     }
@@ -2577,6 +2620,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       ? `they need a nexus letter — ask what condition they're claiming and what event or exposure during service caused it`
       : mode === 'cp_exam'
       ? `they have a C&P exam coming up — ask what condition the exam is for, then shift into exam prep mode with DBQ criteria and symptom description strategy`
+      : mode === 'survivor'
+      ? `ask whether they are a surviving spouse or dependent child, then ask about the veteran's service, cause of death, and any prior VA ratings to determine what survivor benefits apply`
       : `ask what the VA denied, how long ago, and what conditions they're claiming — they're here to fight a denial or get a rating increase`;
     const immediateMsg = `The veteran just uploaded ${fileCount} file(s): ${fileNames}. I'm reading them now in the background — this takes 1-2 minutes. While I work on that, start the conversation immediately. Greet them warmly, tell them you're reading their documents, and ${modeContext}. Keep it conversational and warm. Do NOT wait for the document analysis — start talking now.`;
     
