@@ -1378,41 +1378,96 @@ When collecting doctor information for a nexus letter and the veteran doesn't kn
 
 Only after collecting all 8 items, generate the complete professional nexus letter. If you already know some of these from the conversation, skip those questions — only ask what you don't know yet.
 
-Once you have these, generate a complete professional nexus letter template in this format:
+Once you have all the information, generate TWO sections separated by === markers:
+
+SECTION 1 — DOCTOR BRIEFING (what the doctor needs to know and write)
+SECTION 2 — EXAMPLE LETTER (a fully written example using the veteran's real facts, showing the doctor exactly what a strong finished letter looks like)
+
+Output in this exact format:
 
 ---
-[DATE]
+===BRIEFING===
+NEXUS LETTER BRIEFING — [VETERAN FULL NAME]
+For: Dr. [DOCTOR FULL NAME], [CREDENTIALS]
+Re: VA Disability Claim — [CONDITION]
+
+WHAT YOU ARE BEING ASKED TO DO:
+[VETERAN FULL NAME] is a veteran filing a VA disability claim for [CONDITION]. They need a medical opinion letter (called a "nexus letter") from you stating whether their condition is connected to their military service. This is a standard VA process — thousands of doctors write these every year.
+
+THE LEGAL STANDARD THE VA USES:
+Your letter must state one of these three opinions:
+• "At least as likely as not" (50% or greater) — this is the minimum needed to win
+• "More likely than not" (greater than 50%)
+• "Highly likely" (very strong connection)
+Even "at least as likely as not" is a winning opinion. You do not need to be certain — just 50/50 is enough.
+
+THE VETERAN'S SERVICE FACTS:
+• Name: [VETERAN FULL NAME]
+• Branch/Dates: [BRANCH], [SERVICE DATES]
+• Duty Station: [BASE/LOCATION]
+• Job/Role: [MOS/RATE/JOB]
+• Exposure: [SPECIFIC EXPOSURE — e.g., TCE in drinking water at Key West NAS, documented EPA Superfund site]
+• Condition claimed: [CONDITION], diagnosed [DATE/TIMEFRAME]
+
+WHAT YOUR LETTER MUST INCLUDE (VA REQUIREMENTS):
+1. Your full name, credentials, specialty, and practice address
+2. Statement that you have treated this patient and reviewed their records
+3. List the specific records you reviewed (service records, your own treatment records, lab results, imaging, etc.)
+4. Your clinical findings — current diagnosis, symptoms, how long they've had it
+5. Your medical opinion using the exact phrase: "at least as likely as not (50% or greater probability)"
+6. Your rationale — explain WHY the condition is connected to service (the exposure details below will help)
+7. Your signature, credentials, and date — on your practice letterhead
+
+THE MEDICAL CONNECTION FOR YOUR RATIONALE:
+[Provide specific medical literature connection between the exposure and condition — e.g., "TCE is a documented ototoxin that damages cochlear hair cells. Studies including [X] show a link between TCE exposure and sensorineural hearing loss with latency periods of 20-50 years."]
+
+SUBMIT THE COMPLETED LETTER TO:
+Department of Veterans Affairs, Evidence Intake Center, PO Box 4444, Janesville, WI 53547-4444
+Or the veteran can upload it at VA.gov when filing their claim.
+===END BRIEFING===
+
+===EXAMPLE===
+[Today's date]
+
+[DOCTOR FULL NAME], [CREDENTIALS]
+[PRACTICE NAME]
+[PRACTICE FULL ADDRESS]
+[PHONE NUMBER]
 
 Department of Veterans Affairs
 Evidence Intake Center
 PO Box 4444
 Janesville, WI 53547-4444
 
-RE: Nexus Medical Opinion — [VETERAN FULL NAME], VA File #[FILE NUMBER IF KNOWN]
+RE: Nexus Medical Opinion — [VETERAN FULL NAME]
 
 To Whom It May Concern:
 
-I, [DOCTOR FULL NAME], [CREDENTIALS], am a licensed physician practicing at [PRACTICE NAME], located at [PRACTICE FULL ADDRESS]. My phone number is [PHONE NUMBER].
+I am [DOCTOR FULL NAME], [CREDENTIALS], board-certified in [SPECIALTY], practicing at [PRACTICE NAME] located at [PRACTICE FULL ADDRESS]. My phone number is [PHONE NUMBER].
 
-I have treated [VETERAN NAME] and reviewed their relevant medical history. Based on my clinical evaluation and review of available records, it is my medical opinion that [CONDITION] is at least as likely as not (50% or greater probability) directly connected to [VETERAN NAME]'s military service.
+I have been treating [VETERAN FULL NAME] for [CONDITION] since [DATE]. I am writing this letter in support of their VA disability claim to provide my medical opinion regarding the relationship between their condition and their military service.
 
-MEDICAL FINDINGS: [Doctor — please describe: current diagnosis, symptoms, severity, treatment history, and how long patient has had this condition]
+RECORDS REVIEWED: I have reviewed the following records in forming this opinion: [VETERAN FULL NAME]'s service treatment records, DD-214, my own treatment records dating from [DATE], [any imaging/labs/other records].
 
-BASIS FOR OPINION: [VETERAN NAME] served at [BASE/LOCATION] from [DATES]. During this period, [he/she/they] was exposed to [SPECIFIC CHEMICALS/EXPOSURES]. Medical literature establishes a connection between [EXPOSURE] and [CONDITION]. [Add specific studies or medical rationale here.]
+CLINICAL FINDINGS: [VETERAN FULL NAME] presents with [CONDITION] diagnosed [DATE/TIMEFRAME]. Current symptoms include [symptoms]. The condition [has been continuous / developed over time / was diagnosed X years after service].
 
-RECORDS REVIEWED: [List: service records, VA records, private medical records, lab results, imaging reviewed]
+BASIS FOR MEDICAL OPINION: [VETERAN FULL NAME] served as [JOB] at [BASE] from [DATES]. During this period, [he/she/they] was exposed to [SPECIFIC EXPOSURE]. Medical literature establishes a connection between [EXPOSURE] and [CONDITION]. [INSERT SPECIFIC RATIONALE AND ANY SUPPORTING MEDICAL LITERATURE HERE.]
 
-It is my professional medical opinion, based on reasonable medical certainty, that [CONDITION] is at least as likely as not (50% or greater probability) caused by or the result of [VETERAN NAME]'s military service and exposures described above.
+MEDICAL OPINION: Based on my clinical evaluation, review of the veteran's medical and service records, and my knowledge of the relevant medical literature, it is my professional medical opinion that [VETERAN FULL NAME]'s [CONDITION] is at least as likely as not (50% or greater probability) directly caused by or the result of [his/her/their] military service and the exposures described above.
 
-Signature: _______________________
+Sincerely,
+
+_______________________________
 [DOCTOR FULL NAME], [CREDENTIALS]
+[SPECIALTY]
 [PRACTICE NAME]
 [PRACTICE FULL ADDRESS]
 [PHONE NUMBER]
 Date: ___________________________
+===END EXAMPLE===
 ---
 
-Tell them: "Your nexus letter template is ready. A **Download Nexus Letter** button has appeared below — click it to save the letter as a file. Bring it to your doctor, ask them to review it, fill in their details, sign it, and put it on their letterhead. Then submit it with your VA claim."
+Tell them: "Your nexus letter package is ready — click **Download Nexus Letter** below. It contains two pages: a briefing sheet for your doctor explaining exactly what to write and why, and a fully written example using your real facts that they can model their letter after. Bring both pages to your doctor. They write their own letter on their letterhead using the example as a guide — they don't copy it word for word, they write it in their own words."
 
 A nexus letter is one of the most powerful pieces of evidence you can submit.
 
@@ -2138,183 +2193,86 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   // ── Doctor Search (NPI Registry) ───────────────────────
-  // Specialty taxonomy keywords for NPI filtering
-  const SPECIALTY_KEYWORDS = {
-    hearing: ['audiol','otolar','ent','ear','otorhinolar','speech'],
-    tinnitus: ['audiol','otolar','ent','ear','otorhinolar'],
-    ptsd: ['psych','mental','behav','counsel'],
-    back: ['orthop','spine','neurol','pain','physi'],
-    knee: ['orthop','sport','physi'],
-    heart: ['cardio','intern'],
-    lung: ['pulmon','intern','respirat'],
-    crohn: ['gastro','intern','colon'],
-    colitis: ['gastro','intern','colon'],
-    diabetes: ['endocrin','intern'],
-    skin: ['dermat','intern'],
-    neuro: ['neurol','intern']
-  };
+  async function searchDoctor(lastName, city, state) {
+    openSearchPane('evidence');
+    document.getElementById('search-pane-title').textContent = 'Searching doctors...';
+    document.getElementById('search-results-view').innerHTML = `
+      <div class="search-loading">
+        <div class="search-spinner"></div>
+        <div>Searching NPI registry for Dr. ${lastName} in ${city}${state ? ', ' + state : ''}...</div>
+      </div>`;
 
-  function getSpecialtyFilter() {
-    const recentText = (conversationHistory||[]).slice(-12)
-      .map(m => (typeof m.content === 'string' ? m.content : '').toLowerCase()).join(' ');
-    for (const [key, terms] of Object.entries(SPECIALTY_KEYWORDS)) {
-      if (recentText.includes(key)) return terms;
-    }
-    return null;
-  }
+    try {
+      const params = new URLSearchParams({
+        version: '2.1',
+        last_name: lastName,
+        city: city,
+        state: state || '',
+        limit: 10
+      });
+      const res = await fetch(`https://npiregistry.cms.hhs.gov/api/?${params}`);
+      const data = await res.json();
+      const results = (data.results || []).filter(r => r.enumeration_type === 'NPI-1'); // individuals only
 
-  async function npiLookup(lastName, city, state) {
-    const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev/npi', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ last_name: lastName, city: city, state: state || '' })
-    });
-    if (!res.ok) throw new Error('NPI lookup failed');
-    const data = await res.json();
-    const seen = new Set();
-    return (data.results || [])
-      .filter(r => r.enumeration_type === 'NPI-1')
-      .filter(r => { if (seen.has(r.number)) return false; seen.add(r.number); return true; })
-      .map(r => {
+      if (!results.length) {
+        document.getElementById('search-results-view').innerHTML = `
+          <div class="search-empty">
+            <div>No doctors found for "${lastName}" in ${city}.</div>
+            <div style="font-size:11px;opacity:0.6;">Try a different spelling or city name.</div>
+          </div>`;
+        return;
+      }
+
+      document.getElementById('search-pane-title').textContent = `${results.length} doctors found`;
+      document.getElementById('search-results-view').innerHTML = results.map((r, i) => {
         const basic = r.basic || {};
-        const addr = (r.addresses||[]).find(a=>a.address_purpose==='LOCATION')||(r.addresses||[])[0]||{};
+        const name = `${basic.first_name || ''} ${basic.last_name || ''}`.trim();
+        const cred = basic.credential || '';
+        const addr = (r.addresses || []).find(a => a.address_purpose === 'LOCATION') || (r.addresses || [])[0] || {};
+        const addrStr = [addr.address_1, addr.city, addr.state, addr.postal_code].filter(Boolean).join(', ');
+        const phone = addr.telephone_number || '';
+        const taxonomy = ((r.taxonomies || []).find(t => t.primary) || {}).desc || '';
+
+        return `<div class="search-result-card" data-idx="${i}">
+          <div class="src-source">${taxonomy || 'Physician'}</div>
+          <div class="src-title">${name}${cred ? ', ' + cred : ''}</div>
+          <div class="src-snippet">${addrStr}${phone ? ' · ' + phone : ''}</div>
+          <div class="src-actions">
+            <button class="src-btn src-btn-read" onclick="selectDoctor(${i}, ${JSON.stringify({name, cred, addrStr, phone}).replace(/"/g, '&quot;')})">This is my doctor</button>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Store results for selection
+      window._doctorSearchResults = results.map(r => {
+        const basic = r.basic || {};
+        const addr = (r.addresses || []).find(a => a.address_purpose === 'LOCATION') || (r.addresses || [])[0] || {};
         return {
-          number: r.number,
-          name: `${basic.first_name||''} ${basic.last_name||''}`.trim(),
+          name: `${basic.first_name || ''} ${basic.last_name || ''}`.trim(),
           cred: basic.credential || '',
           address: [addr.address_1, addr.city, addr.state, addr.postal_code].filter(Boolean).join(', '),
           phone: addr.telephone_number || '',
-          taxonomy: (r.taxonomies||[]).map(t=>t.desc||'').join(' ')
+          taxonomy: ((r.taxonomies || []).find(t => t.primary) || {}).desc || ''
         };
       });
-  }
 
-  async function searchDoctor(lastName, city, state) {
-    showDoctorModal(lastName, city, state, 'searching');
-    try {
-      let results = await npiLookup(lastName, city, state);
-      const specFilter = getSpecialtyFilter();
-
-      // Apply specialty filter
-      if (specFilter && results.length > 0) {
-        const filtered = results.filter(r => specFilter.some(kw => r.taxonomy.toLowerCase().includes(kw)));
-        if (filtered.length > 0) results = filtered;
-      }
-
-      // Fallback: try state-wide search if city returned nothing useful
-      if (!results.length) {
-        let r2 = await npiLookup(lastName, '', state || 'LA');
-        if (specFilter && r2.length > 0) {
-          const f2 = r2.filter(r => specFilter.some(kw => r.taxonomy.toLowerCase().includes(kw)));
-          results = f2.length > 0 ? f2 : r2;
-        } else results = r2;
-      }
-
-      if (!results.length) { showDoctorModal(lastName, city, state, 'notfound'); return; }
-      window._doctorSearchResults = results;
-      showDoctorModal(lastName, city, state, 'results', results);
     } catch(err) {
-      showDoctorModal(lastName, city, state, 'notfound');
-    }
-  }
-
-  function showDoctorModal(lastName, city, state, mode, results) {
-    const existing = document.getElementById('doctor-modal');
-    if (existing) existing.remove();
-    const modal = document.createElement('div');
-    modal.id = 'doctor-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-
-    if (mode === 'searching') {
-      modal.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:32px;width:100%;max-width:400px;text-align:center;"><div class="search-spinner" style="margin:0 auto 16px;"></div><div style="font-size:14px;color:var(--text);">Searching for Dr. ${lastName} in ${city}...</div></div>`;
-      document.body.appendChild(modal);
-      return;
-    }
-
-    const googleQuery = encodeURIComponent(`Dr ${lastName} ${city} ${state||''} doctor phone address`);
-    const googleUrl = `https://www.google.com/search?q=${googleQuery}`;
-    let inner = '';
-
-    if (mode === 'results') {
-      const cards = results.map((dr, i) => `
-        <div style="border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface2);">
-          <div style="font-size:11px;color:var(--accent);font-family:IBM Plex Mono,monospace;margin-bottom:3px;">${dr.taxonomy.split(' ').slice(0,3).join(', ')||'Physician'}</div>
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;">${dr.name}${dr.cred?', '+dr.cred:''}</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${dr.address}${dr.phone?' · '+dr.phone:''}</div>
-          <button onclick="selectDoctor(${i})" style="background:#2563eb;color:white;font-size:12px;font-weight:600;padding:7px 14px;border-radius:6px;border:none;cursor:pointer;width:100%;">✓ This is my doctor</button>
-        </div>`).join('');
-      inner = `
-        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:20px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <div style="font-size:15px;font-weight:700;color:var(--text);">${results.length} doctor${results.length>1?'s':''} found</div>
-            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
-          </div>
-          ${cards}
-          <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;">
-            <a href="${googleUrl}" target="_blank" style="color:var(--accent);font-size:12px;text-decoration:none;">🔍 Search Google instead</a>
-            <button onclick="showManualDoctorEntry()" style="background:transparent;color:var(--accent);font-size:12px;border:none;padding:0;cursor:pointer;text-decoration:underline;">Enter manually</button>
-          </div>
-        </div>`;
-    } else {
-      inner = `
-        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:440px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <div style="font-size:15px;font-weight:700;color:var(--text);">Doctor not found automatically</div>
-            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
-          </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Search Google to find their full name, address, and phone — then come back and enter it below.</div>
-          <a href="${googleUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#2563eb;color:white;font-size:14px;font-weight:600;padding:12px;border-radius:8px;text-decoration:none;margin-bottom:14px;">🔍 Search Google for Dr. ${lastName} in ${city}</a>
-          <div style="text-align:center;">
-            <button onclick="showManualDoctorEntry()" style="background:transparent;color:var(--accent);font-size:12px;border:1px solid var(--border2);padding:6px 14px;border-radius:6px;cursor:pointer;">I found them — enter details</button>
-          </div>
+      document.getElementById('search-results-view').innerHTML = `
+        <div class="search-empty">
+          <div>Could not reach NPI registry.</div>
+          <div style="font-size:11px;opacity:0.6;">${err.message}</div>
         </div>`;
     }
-    modal.innerHTML = inner;
-    document.body.appendChild(modal);
   }
 
-  function showManualDoctorEntry() {
-    const existing = document.getElementById('doctor-modal');
-    if (existing) existing.remove();
-    const modal = document.createElement('div');
-    modal.id = 'doctor-modal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-    modal.innerHTML = `
-      <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text);">Enter doctor details</div>
-          <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
-        </div>
-        <input id="dr-fullname" placeholder="Full name (e.g. Phillip Noel)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
-        <input id="dr-cred" placeholder="Credentials (e.g. MD, AuD)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
-        <input id="dr-practice" placeholder="Practice name (e.g. Noel ENT)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
-        <input id="dr-address" placeholder="Full address (street, city, state, zip)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
-        <input id="dr-phone" placeholder="Phone number" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:14px;box-sizing:border-box;" />
-        <button onclick="submitManualDoctor()" style="background:#34d399;color:#000;font-size:14px;font-weight:700;padding:11px;border-radius:8px;border:none;cursor:pointer;width:100%;">Use This Doctor →</button>
-      </div>`;
-    document.body.appendChild(modal);
-  }
-
-  function selectDoctor(idx) {
-    const dr = (window._doctorSearchResults||[])[idx];
+  function selectDoctor(idx, info) {
+    const dr = (window._doctorSearchResults || [])[idx];
     if (!dr) return;
-    document.getElementById('doctor-modal').remove();
-    const msg = `My doctor is: ${dr.name}${dr.cred?', '+dr.cred:''}. Practice: ${dr.taxonomy.split(' ')[0]||'Medical Practice'}. Address: ${dr.address}. Phone: ${dr.phone}.`;
-    appendMessage('user', msg);
-    sendToAI(msg, false);
-  }
-
-  function submitManualDoctor() {
-    const name = document.getElementById('dr-fullname').value.trim();
-    const cred = document.getElementById('dr-cred').value.trim();
-    const practice = document.getElementById('dr-practice').value.trim();
-    const address = document.getElementById('dr-address').value.trim();
-    const phone = document.getElementById('dr-phone').value.trim();
-    if (!name) { alert('Please enter the doctor\'s full name.'); return; }
-    document.getElementById('doctor-modal').remove();
-    const msg = `My doctor is: ${name}${cred?', '+cred:''}. Practice: ${practice||'not provided'}. Address: ${address||'not provided'}. Phone: ${phone||'not provided'}.`;
-    appendMessage('user', msg);
-    sendToAI(msg, false);
+    // Send selection back to bot as a user message
+    const msg = `That's my doctor: ${dr.name}${dr.cred ? ', ' + dr.cred : ''}. Address: ${dr.address}. Phone: ${dr.phone}.`;
+    document.getElementById('user-input').value = msg;
+    sendMessage();
+    closeSearchPane();
   }
 
   // ── Update parseResponse to handle SEARCH_DOCTOR tag ──
@@ -2889,7 +2847,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
 
   function appendMessage(role, text) {
     // Detect nexus letter and inject download button
-    if (role === 'ai' && text.includes('Evidence Intake Center') && text.includes('at least as likely as not')) {
+    if (role === 'ai' && (text.includes('===BRIEFING===') || (text.includes('Evidence Intake Center') && text.includes('at least as likely as not')))) {
       setTimeout(() => {
         const msgs = document.getElementById('messages');
         const btn = document.createElement('div');
@@ -3047,10 +3005,15 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         return;
       }
       content.innerHTML = forms.map(f => `
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 6px;margin-bottom:4px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;">
-          <span style="background:#1e3a5f;color:#60a5fa;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;font-family:IBM Plex Mono,monospace;white-space:nowrap;flex-shrink:0;">VA ${f.number}</span>
-          <span style="font-size:11px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${f.reason}">${f.name}</span>
-          <a href="${f.url}" target="_blank" style="background:#2563eb;color:#fff;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;text-decoration:none;white-space:nowrap;flex-shrink:0;">Open →</a>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-right:8px;margin-bottom:6px;min-width:200px;max-width:260px;display:inline-block;vertical-align:top;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="background:#1e3a5f;color:#60a5fa;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;font-family:IBM Plex Mono,monospace;">VA ${f.number}</span>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;">${f.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:7px;">${f.reason}</div>
+          <a href="${f.url}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#2563eb;color:#fff;font-size:11px;font-weight:600;padding:4px 10px;border-radius:5px;text-decoration:none;">
+            Open Form →
+          </a>
         </div>
       `).join('');
       return;
@@ -3368,7 +3331,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         flags: panelItems.flags.map(i => i.text),
         forms_needed: (panelItems.forms||[]).map(f => `VA ${f.number} — ${f.name}`)
       },
-      nexus_letter: nexusLetter || null,
+      nexus_letter: nexusLetter ? (typeof nexusLetter === 'object' ? nexusLetter.example || nexusLetter.briefing : nexusLetter) : null,
       conversation_summary: cleanHistory
         .filter(m => m.role === 'assistant')
         .slice(-5)
@@ -3385,14 +3348,22 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function extractNexusLetter() {
-    // Scan conversation history for a nexus letter block (between --- markers)
     for (let i = conversationHistory.length - 1; i >= 0; i--) {
       const m = conversationHistory[i];
       if (m.role !== 'assistant') continue;
       const clean = m.content.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim();
-      // Look for letter block between --- markers containing VA Evidence Intake Center
+      // New format: look for ===BRIEFING=== and ===EXAMPLE=== blocks
+      const briefingMatch = clean.match(/===BRIEFING===([\s\S]*?)===END BRIEFING===/);
+      const exampleMatch = clean.match(/===EXAMPLE===([\s\S]*?)===END EXAMPLE===/);
+      if (briefingMatch || exampleMatch) {
+        return {
+          briefing: briefingMatch ? briefingMatch[1].trim() : '',
+          example: exampleMatch ? exampleMatch[1].trim() : ''
+        };
+      }
+      // Legacy format fallback
       const match = clean.match(/---\s*\n([\s\S]*?Evidence Intake Center[\s\S]*?Date:[\s\S]*?)\n---/);
-      if (match) return match[1].trim();
+      if (match) return { briefing: '', example: match[1].trim() };
     }
     return null;
   }
@@ -3428,48 +3399,50 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function downloadNexusLetter() {
-    const letter = extractNexusLetter();
-    if (!letter) {
+    const result = extractNexusLetter();
+    if (!result) {
       alert('Nexus letter not found. Try downloading your session summary instead.');
       return;
     }
 
-    const divider = '\n' + '='.repeat(50) + '\n';
-    const pageBreak = '\n\n\n' + '- - - - - - - - - - - - CUT HERE / PAGE BREAK - - - - - - - - - - - -' + '\n\n\n';
+    const divider = '\n' + '='.repeat(60) + '\n';
+    const pageBreak = '\n\n\n' + '- - - - - - - - - - - - PAGE BREAK - - - - - - - - - - - -' + '\n\n\n';
 
     const page1 = [
-      `NEXUS LETTER — INSTRUCTIONS FOR YOUR DOCTOR`,
+      `NEXUS LETTER PACKAGE`,
       `Generated by MyVAAssist — ${new Date().toLocaleDateString()}`,
       divider,
-      `HOW TO USE THIS LETTER:`,
+      `HOW TO USE THESE TWO PAGES:`,
       ``,
-      `1. Read the letter on the next page carefully`,
-      `2. Fill in ALL bracketed sections [ ] with your information`,
-      `3. In the MEDICAL FINDINGS section — describe the veteran's current`,
-      `   diagnosis, symptoms, severity, and how long they have had the condition`,
-      `4. In the RECORDS REVIEWED section — list all records you reviewed`,
-      `   (service records, VA records, private medical records, lab results, imaging)`,
-      `5. Sign the letter`,
-      `6. Put the letter on your official practice letterhead`,
-      `7. Give the signed letter to the veteran to submit with their VA disability claim`,
+      `PAGE 1 (this page) — DOCTOR BRIEFING`,
+      `Give this to your doctor. It explains what they need to write,`,
+      `the legal standard the VA uses, your service facts, and the`,
+      `medical connection they should reference.`,
+      ``,
+      `PAGE 2 — EXAMPLE LETTER`,
+      `This shows your doctor what a strong finished nexus letter looks`,
+      `like using YOUR specific facts. They write their own letter on`,
+      `their practice letterhead in their own words — they don't copy`,
+      `this word for word. The example just shows them the structure,`,
+      `the legal language, and the level of detail the VA expects.`,
       ``,
       divider,
-      `IMPORTANT LEGAL LANGUAGE:`,
-      `The phrase "at least as likely as not (50% or greater probability)" is the`,
-      `exact standard VA uses for service connection. This language must appear`,
-      `in your letter exactly as written for it to carry legal weight with the VA.`,
-      ``,
-      `QUESTIONS? The veteran can return to myvaassist.com for help at any time.`,
+      result.briefing || '(Briefing not generated — see example letter on page 2)',
+      divider,
+      `SUBMIT COMPLETED LETTER TO:`,
+      `Department of Veterans Affairs`,
+      `Evidence Intake Center`,
+      `PO Box 4444`,
+      `Janesville, WI 53547-4444`,
+      `Or upload at VA.gov when filing the disability claim.`,
     ].join('\n');
 
     const page2 = [
-      `NEXUS LETTER TEMPLATE — PRINT ON PRACTICE LETTERHEAD`,
+      `EXAMPLE NEXUS LETTER — FOR DOCTOR REFERENCE ONLY`,
+      `(Doctor writes their own letter on practice letterhead using this as a guide)`,
       divider,
-      letter,
+      result.example || result.briefing || '(Example not generated)',
       divider,
-      `Submit to: Department of Veterans Affairs, Evidence Intake Center`,
-      `           PO Box 4444, Janesville, WI 53547-4444`,
-      `Or upload at va.gov when filing the disability claim.`,
     ].join('\n');
 
     downloadText(page1 + pageBreak + page2, `nexus-letter-${Date.now()}.txt`);
