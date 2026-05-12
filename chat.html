@@ -1382,7 +1382,6 @@ If veteran doesn't know, suggest based on their job/base using your knowledge of
 If same exposure caused multiple conditions (noise → hearing loss AND tinnitus), use it for both — do NOT ask again.
 
 STEP 4 — GENERATE ALL PACKAGES TOGETHER, back to back.
-CRITICAL: Each condition MUST be its own separate ===CONDITION=== block. Do NOT combine multiple conditions into one block. If there are 3 conditions, output 3 separate blocks, each starting with ===CONDITION: [NAME]=== and ending with ===END EXAMPLE===. The download button depends on these being separate blocks.
 Use this exact format for EACH condition:
 
 ---
@@ -1939,8 +1938,8 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       conversationHistory.push({ role: 'assistant', content: '[Understood. This is a first-time filer. I will not ask about prior claims.]' });
     } else if (mode === 'nexus') {
       opener = `Thank you for your service. Let's build your nexus letter packages.\n\nFirst I need a few basics about your service.\n\n→ What branch of the military did you serve in?`;
-      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: Nexus mode. The veteran just answered the branch question in their first message. Do NOT ask for branch again. Collect remaining service facts in this exact order: full legal name → service dates → duty station/base (must be real base name, not job title) → job/MOS. Ask ONE question at a time. After all service facts collected, ask ALL conditions at once in one question. Then per-condition exposure. Then generate ALL packages together. No doctor info needed.]' });
-      conversationHistory.push({ role: 'assistant', content: '[Understood. Branch already known from first answer. Next: name → dates → base → job → all conditions → exposures → all packages.]' });
+      conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: Nexus mode. Order: (1) name, branch, dates, actual base name, job — once only. (2) ALL conditions at once. (3) per-condition exposure. (4) all packages together. No doctor info needed. Base must be a real base — if they say job title ask for the base.]' });
+      conversationHistory.push({ role: 'assistant', content: '[Understood. Service facts first, all conditions, exposures, all packages.]' });
     } else if (mode === 'cp_exam') {
       opener = `Thank you for your service. A C&P exam — Compensation & Pension exam — is one of the most important steps in your VA claim. How you perform in that room directly affects your rating.\n\nI'm going to help you walk in prepared.\n\nFirst things first — the VA examiner will be filling out a specific form called a DBQ (Disability Benefits Questionnaire) for your condition. Reading that form before your exam tells you exactly what they're measuring and what language matters. I'll pull it for you once I know your condition.\n\n→ What condition is your C&P exam for?`;
       conversationHistory.push({ role: 'user', content: '[SYSTEM NOTE: This veteran has an upcoming C&P exam. They are NOT filing for the first time and are NOT appealing a denial right now — they need C&P exam preparation. Your job is to: (1) identify the condition the exam covers, (2) ask when the exam is scheduled so you can flag urgency appropriately, (3) pull the exact DBQ criteria for that condition and explain what the examiner measures, (4) tell them what symptoms to describe and how to describe them — worst days not average days, (5) give them the full prep checklist, (6) offer to walk through a mock exam. Focus entirely on exam prep. Do NOT pivot to filing or appeals unless they ask. If the exam is within 2 weeks, flag it as urgent in the Flags panel.]' });
@@ -3338,27 +3337,33 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function extractNexusLetter() {
+    // Concatenate all assistant messages into one big string to avoid regex lastIndex issues
+    const allText = conversationHistory
+      .filter(m => m.role === 'assistant')
+      .map(m => typeof m.content === 'string' ? m.content : '')
+      .join('\n')
+      .replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '');
+
     const packages = [];
     const seen = new Set();
-    for (let i = 0; i < conversationHistory.length; i++) {
-      const m = conversationHistory[i];
-      if (m.role !== 'assistant') continue;
-      const raw = typeof m.content === 'string' ? m.content : '';
-      const clean = raw.replace(/<<<PANEL_UPDATE>>>[\s\S]*?<<<END_PANEL>>>/g, '').trim();
-      const regex = /===CONDITION:\s*([^=\n]+)===[\s\S]*?===BRIEFING===([\s\S]*?)===END BRIEFING===[\s\S]*?===EXAMPLE===([\s\S]*?)===END EXAMPLE===/g;
-      let match;
-      while ((match = regex.exec(clean)) !== null) {
-        const cond = match[1].trim();
-        if (!seen.has(cond)) {
-          seen.add(cond);
-          packages.push({ condition: cond, briefing: match[2].trim(), example: match[3].trim() });
-        }
-      }
-      if (!packages.length) {
-        const legacy = clean.match(/---\s*\n([\s\S]*?Evidence Intake Center[\s\S]*?Date:[\s\S]*?)\n---/);
-        if (legacy && !seen.has('legacy')) { seen.add('legacy'); packages.push({ condition: 'Condition', briefing: '', example: legacy[1].trim() }); }
+
+    // Use matchAll on the full combined text
+    const pattern = /===CONDITION:\s*([^=\n]+)===(?:[\s\S]*?)===BRIEFING===([\s\S]*?)===END BRIEFING===(?:[\s\S]*?)===EXAMPLE===([\s\S]*?)===END EXAMPLE===/g;
+    const matches = [...allText.matchAll(pattern)];
+    for (const match of matches) {
+      const cond = match[1].trim();
+      if (!seen.has(cond)) {
+        seen.add(cond);
+        packages.push({ condition: cond, briefing: match[2].trim(), example: match[3].trim() });
       }
     }
+
+    // Legacy fallback
+    if (!packages.length) {
+      const legacy = allText.match(/---\s*\n([\s\S]*?Evidence Intake Center[\s\S]*?Date:[\s\S]*?)\n---/);
+      if (legacy) packages.push({ condition: 'Condition', briefing: '', example: legacy[1].trim() });
+    }
+
     return packages.length ? packages : null;
   }
 
