@@ -2738,7 +2738,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         body: JSON.stringify({
           system: SYSTEM_PROMPT,
           messages: conversationHistory,
-          max_tokens: 2000
+          max_tokens: 8000
         })
       });
 
@@ -2777,7 +2777,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         body: JSON.stringify({
           system: SYSTEM_PROMPT,
           messages: conversationHistory,
-          max_tokens: 1500
+          max_tokens: 8000
         })
       });
 
@@ -3337,7 +3337,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   }
 
   function extractNexusLetter() {
-    // Concatenate all assistant messages into one big string to avoid regex lastIndex issues
+    // Concatenate ALL assistant messages to avoid per-message regex issues
     const allText = conversationHistory
       .filter(m => m.role === 'assistant')
       .map(m => typeof m.content === 'string' ? m.content : '')
@@ -3347,10 +3347,9 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const packages = [];
     const seen = new Set();
 
-    // Use matchAll on the full combined text
+    // matchAll finds ALL condition blocks across the full text
     const pattern = /===CONDITION:\s*([^=\n]+)===(?:[\s\S]*?)===BRIEFING===([\s\S]*?)===END BRIEFING===(?:[\s\S]*?)===EXAMPLE===([\s\S]*?)===END EXAMPLE===/g;
-    const matches = [...allText.matchAll(pattern)];
-    for (const match of matches) {
+    for (const match of allText.matchAll(pattern)) {
       const cond = match[1].trim();
       if (!seen.has(cond)) {
         seen.add(cond);
@@ -3358,7 +3357,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       }
     }
 
-    // Legacy fallback
+    // Legacy fallback for old format
     if (!packages.length) {
       const legacy = allText.match(/---\s*\n([\s\S]*?Evidence Intake Center[\s\S]*?Date:[\s\S]*?)\n---/);
       if (legacy) packages.push({ condition: 'Condition', briefing: '', example: legacy[1].trim() });
