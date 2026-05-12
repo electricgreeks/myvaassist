@@ -379,7 +379,7 @@
   }
 
   .top-panel-bar.expanded {
-    max-height: 320px;
+    max-height: 180px;
   }
 
   .top-panel-toggle {
@@ -442,7 +442,7 @@
   .top-panel-content {
     padding: 10px 18px;
     overflow-y: auto;
-    max-height: 240px;
+    max-height: 140px;
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -1366,14 +1366,14 @@ When collecting doctor information for a nexus letter and the veteran doesn't kn
 - Then tell the veteran: "Let me search for that doctor's information." and call the searchDoctor() function by outputting this exact tag on its own line: <<<SEARCH_DOCTOR:lastname:city:state>>>
 - Example: if veteran says "Dr. Smith in Lafayette Louisiana" output: <<<SEARCH_DOCTOR:Smith:Lafayette:LA>>>
 - The app will search the NPI registry and show matching doctors in the search panel for the veteran to pick from
-- Once the app sends doctor info (a message starting with "My doctor is:"), immediately generate the complete nexus letter using those exact details — no more questions.
-- VETERAN NAME: Accept whatever name the veteran gives you. Never question whether it is their "real" name or ask them to confirm it. Use it exactly as given.
+- When the app sends doctor info (message starting with "My doctor is:"), IMMEDIATELY generate the complete nexus letter with those exact details. No more questions.
+- VETERAN NAME: Accept whatever name the veteran gives. Never question it. Use it exactly as given.
 - Do not generate the letter until you have ALL of these:
-1. What condition are they claiming? (e.g., hearing loss, Crohn's disease)
-2. What specific event, exposure, or injury during service caused or contributed to it? (if not already known from conversation)
+1. What condition are they claiming?
+2. What specific event, exposure, or injury during service caused it? (if not already known)
 3. When and where did the exposure/event occur? (if not already known)
-4. What is the veteran's full legal name? (if not already known — accept whatever they say)
-5. Doctor details sent by the app (message starting with "My doctor is:")
+4. Veteran's full name (accept whatever they say)
+5. Doctor details from the app (message starting with "My doctor is:")
 
 Only after collecting all 8 items, generate the complete professional nexus letter. If you already know some of these from the conversation, skip those questions — only ask what you don't know yet.
 
@@ -2139,7 +2139,6 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   // ── Doctor Search (NPI Registry) — Modal-based ────────
   async function searchDoctor(lastName, city, state) {
     showDoctorModal(lastName, city, state, 'searching');
-
     try {
       const res = await fetch('https://myvaassist-proxy.jrfmick.workers.dev/npi', {
         method: 'POST',
@@ -2149,20 +2148,9 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
       if (!res.ok) throw new Error('NPI lookup failed');
       const data = await res.json();
       const results = (data.results || []).filter(r => r.enumeration_type === 'NPI-1');
-
-      // Deduplicate by NPI number
       const seen = new Set();
-      const unique = results.filter(r => {
-        if (seen.has(r.number)) return false;
-        seen.add(r.number);
-        return true;
-      });
-
-      if (!unique.length) {
-        showDoctorModal(lastName, city, state, 'notfound');
-        return;
-      }
-
+      const unique = results.filter(r => { if (seen.has(r.number)) return false; seen.add(r.number); return true; });
+      if (!unique.length) { showDoctorModal(lastName, city, state, 'notfound'); return; }
       window._doctorSearchResults = unique.map(r => {
         const basic = r.basic || {};
         const addr = (r.addresses || []).find(a => a.address_purpose === 'LOCATION') || (r.addresses || [])[0] || {};
@@ -2171,36 +2159,33 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
           cred: basic.credential || '',
           address: [addr.address_1, addr.city, addr.state, addr.postal_code].filter(Boolean).join(', '),
           phone: addr.telephone_number || '',
-          taxonomy: ((r.taxonomies || []).find(t => t.primary) || {}).desc || '',
-          practice: addr.address_1 ? '' : ''
+          taxonomy: ((r.taxonomies || []).find(t => t.primary) || {}).desc || ''
         };
       });
-
       showDoctorModal(lastName, city, state, 'results', window._doctorSearchResults);
-
     } catch(err) {
       showDoctorModal(lastName, city, state, 'notfound');
     }
   }
 
   function showDoctorModal(lastName, city, state, mode, results) {
-    // Remove existing modal
     const existing = document.getElementById('doctor-modal');
     if (existing) existing.remove();
-
+    if (mode === 'searching') {
+      const modal = document.createElement('div');
+      modal.id = 'doctor-modal';
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+      modal.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:32px;width:100%;max-width:400px;text-align:center;"><div class="search-spinner" style="margin:0 auto 16px;"></div><div style="font-size:14px;color:var(--text);">Searching for Dr. ${lastName} in ${city}...</div></div>`;
+      document.body.appendChild(modal);
+      return;
+    }
+    const googleQuery = encodeURIComponent(`Dr ${lastName} ${city} ${state || ''} doctor phone address`);
+    const googleUrl = `https://www.google.com/search?q=${googleQuery}`;
     const modal = document.createElement('div');
     modal.id = 'doctor-modal';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-
     let inner = '';
-
-    if (mode === 'searching') {
-      inner = `
-        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:32px;width:100%;max-width:420px;text-align:center;">
-          <div class="search-spinner" style="margin:0 auto 16px;"></div>
-          <div style="font-size:14px;color:var(--text);">Searching for Dr. ${lastName} in ${city}...</div>
-        </div>`;
-    } else if (mode === 'results') {
+    if (mode === 'results') {
       const cards = results.map((dr, i) => `
         <div style="border:1px solid var(--border2);border-radius:8px;padding:12px;margin-bottom:8px;background:var(--surface2);">
           <div style="font-size:11px;color:var(--accent);font-family:IBM Plex Mono,monospace;margin-bottom:4px;">${dr.taxonomy || 'Physician'}</div>
@@ -2212,39 +2197,51 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
         <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <div style="font-size:15px;font-weight:700;color:var(--text);">${results.length} doctor${results.length>1?'s':''} found</div>
-            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
           </div>
           ${cards}
-          <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:8px;">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Not seeing the right doctor?</div>
-            <button onclick="showDoctorModal('${lastName}','${city}','${state||''}','notfound')" style="background:transparent;color:var(--accent);font-size:12px;border:1px solid var(--border2);padding:6px 12px;border-radius:6px;cursor:pointer;">Enter details manually →</button>
+          <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;text-align:center;">
+            <button onclick="showManualDoctorEntry('${lastName}','${city}','${state||''}')" style="background:transparent;color:var(--accent);font-size:12px;border:1px solid var(--border2);padding:6px 14px;border-radius:6px;cursor:pointer;">Not here — enter manually</button>
           </div>
         </div>`;
     } else {
-      // notfound — Google search + manual entry
-      const googleQuery = encodeURIComponent(`Dr ${lastName} ${city} ${state || ''} doctor phone address`);
-      const googleUrl = `https://www.google.com/search?q=${googleQuery}`;
+      // notfound — Google only, no manual form yet
       inner = `
-        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:460px;max-height:80vh;overflow-y:auto;">
+        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:28px;width:100%;max-width:440px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <div style="font-size:15px;font-weight:700;color:var(--text);">Doctor not found automatically</div>
-            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;">✕</button>
+            <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
           </div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Search Google to find their name, address, and phone number, then enter it below.</div>
-          <a href="${googleUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#2563eb;color:white;font-size:13px;font-weight:600;padding:10px;border-radius:8px;text-decoration:none;margin-bottom:16px;">🔍 Search Google for Dr. ${lastName} in ${city}</a>
-          <div style="border-top:1px solid var(--border);padding-top:14px;">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;font-weight:600;">Enter details manually:</div>
-            <input id="dr-fullname" placeholder="Full name (e.g. Erick Salvatierra)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
-            <input id="dr-cred" placeholder="Credentials (e.g. MD)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
-            <input id="dr-practice" placeholder="Practice name" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
-            <input id="dr-address" placeholder="Full address (street, city, state, zip)" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:6px;box-sizing:border-box;" />
-            <input id="dr-phone" placeholder="Phone number" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;margin-bottom:12px;box-sizing:border-box;" />
-            <button onclick="submitManualDoctor()" style="background:#34d399;color:#000;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:none;cursor:pointer;width:100%;">Use This Doctor →</button>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Search Google to find their name, address, and phone — then come back and enter it below.</div>
+          <a href="${googleUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#2563eb;color:white;font-size:14px;font-weight:600;padding:12px;border-radius:8px;text-decoration:none;margin-bottom:16px;">🔍 Search Google for Dr. ${lastName} in ${city}</a>
+          <div style="text-align:center;">
+            <button onclick="showManualDoctorEntry('${lastName}','${city}','${state||''}')" style="background:transparent;color:var(--accent);font-size:12px;border:1px solid var(--border2);padding:6px 14px;border-radius:6px;cursor:pointer;">I found them — enter details manually</button>
           </div>
         </div>`;
     }
-
     modal.innerHTML = inner;
+    document.body.appendChild(modal);
+  }
+
+  function showManualDoctorEntry(lastName, city, state) {
+    const existing = document.getElementById('doctor-modal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'doctor-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    modal.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:100%;max-width:440px;max-height:85vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text);">Enter doctor details</div>
+          <button onclick="document.getElementById('doctor-modal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;">✕</button>
+        </div>
+        <input id="dr-fullname" placeholder="Full name (e.g. Erick Salvatierra)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
+        <input id="dr-cred" placeholder="Credentials (e.g. MD)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
+        <input id="dr-practice" placeholder="Practice name" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
+        <input id="dr-address" placeholder="Full address (street, city, state, zip)" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:8px;box-sizing:border-box;" />
+        <input id="dr-phone" placeholder="Phone number" style="width:100%;padding:9px 11px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px;margin-bottom:14px;box-sizing:border-box;" />
+        <button onclick="submitManualDoctor()" style="background:#34d399;color:#000;font-size:14px;font-weight:700;padding:11px;border-radius:8px;border:none;cursor:pointer;width:100%;">Use This Doctor →</button>
+      </div>`;
     document.body.appendChild(modal);
   }
 
@@ -2265,7 +2262,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     const phone = document.getElementById('dr-phone').value.trim();
     if (!name) { alert('Please enter the doctor\'s full name.'); return; }
     document.getElementById('doctor-modal').remove();
-    const msg = `My doctor is: ${name}${cred ? ', ' + cred : ''}. Practice: ${practice || 'unknown'}. Address: ${address || 'unknown'}. Phone: ${phone || 'unknown'}.`;
+    const msg = `My doctor is: ${name}${cred ? ', ' + cred : ''}. Practice: ${practice || 'not provided'}. Address: ${address || 'not provided'}. Phone: ${phone || 'not provided'}.`;
     appendMessage('user', msg);
     sendToAI(msg, false);
   }
@@ -3501,7 +3498,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
   let tourHighlighted = null;
 
   function startTour() {
-    if (localStorage.getItem('mva_tour_done')) return;
+    if (sessionStorage.getItem('mva_tour_done')) return;
     tourStep = 0;
     document.getElementById('tour-overlay').classList.add('active');
     showTourStep();
@@ -3564,7 +3561,7 @@ RETURNING VETERANS: If the veteran uploads a .json file that contains a "resume_
     if (tourHighlighted) tourHighlighted.classList.remove('tour-highlight');
     document.getElementById('tour-overlay').classList.remove('active');
     document.getElementById('tour-tooltip').style.display = 'none';
-    localStorage.setItem('mva_tour_done', '1');
+    sessionStorage.setItem('mva_tour_done', '1');
   }
 
   // ── Input helpers ──────────────────────────────────────
